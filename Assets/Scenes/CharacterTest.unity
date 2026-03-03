@@ -458,6 +458,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7952889444942919351, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
+      propertyPath: rotationMode
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -651,6 +655,7 @@ GameObject:
   - component: {fileID: 881175784}
   - component: {fileID: 881175787}
   - component: {fileID: 881175786}
+  - component: {fileID: 881175788}
   m_Layer: 0
   m_Name: TravelCinemachineCamera
   m_TagString: Untagged
@@ -792,6 +797,22 @@ MonoBehaviour:
       Wait: 1
       Time: 2
     Restrictions: 0
+--- !u!114 &881175788
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881175782}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c987cf40b2834561b7e200744dcb293d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.Camera.CameraRotationController
+  inputSystem: {fileID: 0}
+  rotationMode: 1
+  rotationSensitivity: 0.5
+  rotateOnClick: 1
 --- !u!4 &1611451973 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5531568417652931369, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
