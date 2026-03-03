@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 1454963165242459368}
   - component: {fileID: 3244603556446708356}
   - component: {fileID: 7952889444942919351}
+  - component: {fileID: 8128472131408670894}
+  - component: {fileID: 4781948792601050034}
   m_Layer: 0
   m_Name: CharacterYBot
   m_TagString: Untagged
@@ -88,8 +90,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: PrototUnity::PrototUnity.Character.CharacterMovement
   inputSystem: {fileID: 0}
   characterController: {fileID: 3244603556446708356}
+  rotationMode: 0
   movementStats: {fileID: 1454963165242459368}
   gravityAcceleration: -9.81
+--- !u!95 &8128472131408670894
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1523110374407152969}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: 4a020a274275a412d8dda2c2789ac6c7, type: 3}
+  m_Controller: {fileID: 9100000, guid: 280995c3c77cf40a895f76f8d6faf5e0, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &4781948792601050034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1523110374407152969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f12bd44692a54f398873cfd862b7ce0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.Character.CharacterAnimation
+  animator: {fileID: 8128472131408670894}
+  characterController: {fileID: 3244603556446708356}
 --- !u!1 &5438169274385052749
 GameObject:
   m_ObjectHideFlags: 0
