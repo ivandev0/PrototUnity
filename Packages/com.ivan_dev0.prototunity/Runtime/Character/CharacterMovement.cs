@@ -1,10 +1,15 @@
+using System;
 using PrototUnity.Input;
 using UnityEngine;
 
 namespace PrototUnity.Character {
+	[Serializable]
+	internal enum CharacterRotationMode { RotateWithMovement, RotateWithCamera };	
+	
 	public class CharacterMovement: MonoBehaviour {
 		[SerializeField] private InputManager inputSystem;
 		[SerializeField] private CharacterController characterController;
+		[SerializeField] private CharacterRotationMode rotationMode = CharacterRotationMode.RotateWithMovement;
 
 		[SerializeField] private CharacterMovementStats movementStats;
 		[SerializeField] private float gravityAcceleration = -9.81f;
@@ -62,10 +67,26 @@ namespace PrototUnity.Character {
 		}
 
 		private void Rotate() {
+			switch (rotationMode) {
+				case CharacterRotationMode.RotateWithMovement:
+					RotateToMoveDirection();
+					break;
+				case CharacterRotationMode.RotateWithCamera:
+					RotateToCamera();
+					break;
+			}
+		}
+
+		private void RotateToMoveDirection() {
 			if (moveDirection == Vector3.zero) return;
 			var rot = Quaternion.LookRotation(moveDirection);
 			var targetRotation = Quaternion.Slerp(transform.rotation, rot, Time.fixedDeltaTime * movementInputAmount * movementStats.MaxRotationSpeed);
 			transform.rotation = targetRotation;
+		}
+
+		private void RotateToCamera() {
+			if (moveDirection == Vector3.zero) return;
+			transform.forward = new Vector3(mainCamera.transform.forward.x, transform.forward.y, mainCamera.transform.forward.z);
 		}
 	}
 }
