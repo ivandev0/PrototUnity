@@ -1,15 +1,12 @@
-using System;
+using PrototUnity.Camera;
 using PrototUnity.Input;
 using UnityEngine;
 
 namespace PrototUnity.Character {
-	[Serializable]
-	internal enum CharacterRotationMode { RotateWithMovement, RotateWithCamera };	
-	
 	public class CharacterMovement: MonoBehaviour {
 		[SerializeField] private InputManager inputSystem;
 		[SerializeField] private CharacterController characterController;
-		[SerializeField] private CharacterRotationMode rotationMode = CharacterRotationMode.RotateWithMovement;
+		[SerializeField] private CameraRotationController cameraRotationController;
 
 		[SerializeField] private CharacterMovementStats movementStats;
 		[SerializeField] private float gravityAcceleration = -9.81f;
@@ -67,13 +64,10 @@ namespace PrototUnity.Character {
 		}
 
 		private void Rotate() {
-			switch (rotationMode) {
-				case CharacterRotationMode.RotateWithMovement:
-					RotateToMoveDirection();
-					break;
-				case CharacterRotationMode.RotateWithCamera:
-					RotateToCamera();
-					break;
+			if (cameraRotationController.ViewMode == CameraViewMode.RotateAroundTarget) {
+				RotateToCamera();
+			} else {
+				RotateToMoveDirection();
 			}
 		}
 
