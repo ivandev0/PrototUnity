@@ -12,16 +12,27 @@ namespace PrototUnity.Camera {
 		[SerializeField] private CameraViewMode viewMode = CameraViewMode.ThirdPerson;
 		// [SerializeField] private bool followsTarget = true;
 
-		private CinemachineOrbitalFollow orbitalFollow;
-
 		private void Setup() {
 			switch (viewMode) {
 				case CameraViewMode.TopDown:
-				case CameraViewMode.FirstPerson:
 					throw new NotImplementedException();
+					
+				case CameraViewMode.FirstPerson:
+					var follow = gameObject.AddComponent<CinemachineFollow>();
+					follow.TrackerSettings = new TrackerSettings() {
+						BindingMode = BindingMode.LockToTarget,
+						AngularDampingMode = AngularDampingMode.Euler,
+						RotationDamping = Vector3.zero,
+						PositionDamping = Vector3.zero,
+					};
+					follow.FollowOffset = new Vector3(0, 1.5f, 0.1f);
+					
+					var panTilt = gameObject.AddComponent<CinemachinePanTilt>();
+					panTilt.ReferenceFrame = CinemachinePanTilt.ReferenceFrames.ParentObject;
+					panTilt.RecenterTarget = CinemachinePanTilt.RecenterTargetModes.AxisCenter;
 					break;
 				case CameraViewMode.ThirdPerson:
-					orbitalFollow = gameObject.AddComponent<CinemachineOrbitalFollow>();
+					var orbitalFollow = gameObject.AddComponent<CinemachineOrbitalFollow>();
 					orbitalFollow.TrackerSettings = new TrackerSettings {
 						BindingMode = BindingMode.LockToTargetOnAssign,
 						PositionDamping = new Vector3(0.1f, 0.1f, 0.1f),

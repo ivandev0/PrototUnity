@@ -11,6 +11,7 @@ namespace PrototUnity.Camera {
 		// [SerializeField] private bool allowMovement = false;
 		
 		private CinemachineOrbitalFollow orbitalFollow;
+		private CinemachinePanTilt panTilt;
 
 		private void OnEnable() {
 			if (inputSystem == null) {
@@ -25,8 +26,17 @@ namespace PrototUnity.Camera {
 
 		private void OnRotate(Vector2 vector) {
 			if (rotateOnClick && !Mouse.current.rightButton.isPressed) return;
-			if (orbitalFollow == null) orbitalFollow = GetComponent<CinemachineOrbitalFollow>();
-			orbitalFollow.HorizontalAxis.Value += vector.x * rotationSensitivity;
+			
+			if (orbitalFollow == null && panTilt == null) {
+				orbitalFollow = GetComponent<CinemachineOrbitalFollow>(); 
+				panTilt = GetComponent<CinemachinePanTilt>();
+			}
+
+			if (orbitalFollow != null) { 
+				orbitalFollow.HorizontalAxis.Value += vector.x * rotationSensitivity;
+			} else if (panTilt != null) {
+				panTilt.PanAxis.Value += vector.x * rotationSensitivity;
+			}
 		}
 	}
 }
