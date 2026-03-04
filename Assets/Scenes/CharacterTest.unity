@@ -408,7 +408,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 914582476}
     m_Modifications:
     - target: {fileID: 1523110374407152969, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
       propertyPath: m_Name
@@ -420,7 +420,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5531568417652931369, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -1.50328
       objectReference: {fileID: 0}
     - target: {fileID: 5531568417652931369, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
       propertyPath: m_LocalPosition.y
@@ -428,7 +428,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5531568417652931369, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 1.06126
       objectReference: {fileID: 0}
     - target: {fileID: 5531568417652931369, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
       propertyPath: m_LocalRotation.w
@@ -436,15 +436,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5531568417652931369, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 5531568417652931369, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 5531568417652931369, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 5531568417652931369, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -609,8 +609,9 @@ GameObject:
   - component: {fileID: 492672691}
   - component: {fileID: 492672692}
   - component: {fileID: 492672689}
+  - component: {fileID: 492672693}
   m_Layer: 0
-  m_Name: test camera
+  m_Name: CinamechineCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -629,9 +630,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.Camera.CameraRotationController
   inputSystem: {fileID: 0}
-  viewMode: 2
   rotationSensitivity: 0.5
-  rotateOnClick: 1
+  rotateOnClick: 0
 --- !u!4 &492672691
 Transform:
   m_ObjectHideFlags: 0
@@ -640,12 +640,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 492672688}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.22586364, y: 0, z: 0, w: 0.97415894}
-  m_LocalPosition: {x: 0, y: 2.9021175, z: -2.8611507}
+  m_LocalRotation: {x: 0.22586364, y: -0, z: -0, w: 0.97415894}
+  m_LocalPosition: {x: -1.50328, y: 2.9021175, z: -1.7998908}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 914582476}
   m_LocalEulerAnglesHint: {x: 20.11, y: 0, z: 0}
 --- !u!114 &492672692
 MonoBehaviour:
@@ -690,6 +690,19 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &492672693
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 492672688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eea4822fb9a44a8c876adcaad3ed2836, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.Camera.CameraSetup
+  viewMode: 1
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -906,9 +919,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.Camera.CameraRotationController
   inputSystem: {fileID: 0}
-  viewMode: 2
   rotationSensitivity: 0.5
   rotateOnClick: 1
+--- !u!1 &914582475
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 914582476}
+  m_Layer: 0
+  m_Name: CameraWithCharacter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &914582476
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 914582475}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.50328, y: -0, z: -1.06126}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 492672691}
+  - {fileID: 1611451973}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1611451973 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5531568417652931369, guid: 3503b9118ce4c43c4b1c5b3e0ac58912, type: 3}
@@ -947,7 +992,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.Camera.CameraRotationController
   inputSystem: {fileID: 0}
-  viewMode: 2
   rotationSensitivity: 0.5
   rotateOnClick: 1
 --- !u!114 &1917895605
@@ -1092,7 +1136,6 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 252141018}
-  - {fileID: 362426243}
   - {fileID: 881175785}
   - {fileID: 1917895606}
-  - {fileID: 492672691}
+  - {fileID: 914582476}

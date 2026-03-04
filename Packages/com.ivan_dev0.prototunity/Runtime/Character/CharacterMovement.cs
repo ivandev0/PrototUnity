@@ -1,14 +1,18 @@
+using System;
 using PrototUnity.Camera;
 using PrototUnity.Input;
 using UnityEngine;
 
 namespace PrototUnity.Character {
+	[Serializable] internal enum CharacterRotationMode { RotateToMoveDirection, RotateToCameraDirection }
+	
 	public class CharacterMovement: MonoBehaviour {
 		[SerializeField] private InputManager inputSystem;
 		[SerializeField] private CharacterController characterController;
 		[SerializeField] private CameraRotationController cameraRotationController;
 
 		[SerializeField] private CharacterMovementStats movementStats;
+		[SerializeField] private CharacterRotationMode rotationMode = CharacterRotationMode.RotateToMoveDirection;
 		[SerializeField] private float gravityAcceleration = -9.81f;
 		
 		private Vector3 moveDirection = Vector3.zero;
@@ -64,10 +68,15 @@ namespace PrototUnity.Character {
 		}
 
 		private void Rotate() {
-			if (cameraRotationController.ViewMode == CameraViewMode.RotateAroundTarget) {
-				RotateToCamera();
-			} else {
-				RotateToMoveDirection();
+			switch (rotationMode) {
+				case CharacterRotationMode.RotateToMoveDirection: 
+					RotateToMoveDirection();
+					break;
+				case CharacterRotationMode.RotateToCameraDirection: 
+					RotateToCamera();
+					break;
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 		}
 
