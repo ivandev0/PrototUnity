@@ -45,7 +45,7 @@ namespace PrototUnity.Camera {
 					orbitalFollow = gameObject.AddComponent<CinemachineOrbitalFollow>();
 					orbitalFollow.TrackerSettings = new TrackerSettings {
 						BindingMode = BindingMode.LockToTargetOnAssign,
-						PositionDamping = new Vector3(0.1f, 0.1f, 0.1f),
+						PositionDamping = Vector3.zero,
 					};
 					orbitalFollow.TargetOffset = new Vector3(0, 2f, 0);
 					orbitalFollow.OrbitStyle = CinemachineOrbitalFollow.OrbitStyles.Sphere;
