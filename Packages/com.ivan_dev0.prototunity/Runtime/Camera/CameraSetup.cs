@@ -15,7 +15,17 @@ namespace PrototUnity.Camera {
 		private void Setup() {
 			switch (viewMode) {
 				case CameraViewMode.TopDown:
-					throw new NotImplementedException();
+					var orbitalFollow = gameObject.AddComponent<CinemachineOrbitalFollow>();
+					orbitalFollow.TrackerSettings = new TrackerSettings() {
+						BindingMode = BindingMode.WorldSpace,
+						PositionDamping = Vector3.zero,
+					};
+					orbitalFollow.TargetOffset = new Vector3(0, 5, 0);
+					orbitalFollow.OrbitStyle = CinemachineOrbitalFollow.OrbitStyles.Sphere;
+					orbitalFollow.Radius = 4f;
+					
+					gameObject.AddComponent<CinemachineHardLookAt>();
+					break;
 					
 				case CameraViewMode.FirstPerson:
 					var follow = gameObject.AddComponent<CinemachineFollow>();
@@ -32,7 +42,7 @@ namespace PrototUnity.Camera {
 					panTilt.RecenterTarget = CinemachinePanTilt.RecenterTargetModes.AxisCenter;
 					break;
 				case CameraViewMode.ThirdPerson:
-					var orbitalFollow = gameObject.AddComponent<CinemachineOrbitalFollow>();
+					orbitalFollow = gameObject.AddComponent<CinemachineOrbitalFollow>();
 					orbitalFollow.TrackerSettings = new TrackerSettings {
 						BindingMode = BindingMode.LockToTargetOnAssign,
 						PositionDamping = new Vector3(0.1f, 0.1f, 0.1f),
