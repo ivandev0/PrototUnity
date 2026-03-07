@@ -145,6 +145,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: PrototUnity::PrototUnity.Character.CharacterSpeedController
   inputSystem: {fileID: 0}
   movementStats: {fileID: 1454963165242459368}
+  sprintSpeed: 7
+  runSpeed: 4.18
+  walkSpeed: 1.64
 --- !u!1 &5438169274385052749
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,7 +5,11 @@ namespace PrototUnity.Character {
 		[SerializeField] private float maxMovementSpeed;
 		[SerializeField] private float maxRotationSpeed;
 		
-		public float MaxMovementSpeed => maxMovementSpeed;
+		public float MaxMovementSpeed {
+			get => maxMovementSpeed;
+			set => maxMovementSpeed = value;
+		}
+
 		public float MaxRotationSpeed => maxRotationSpeed;
 	}
 }

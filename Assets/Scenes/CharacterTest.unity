@@ -698,6 +698,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5029753319881452, guid: 1833a39628bc240fb95d1550c22c5aa9, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5029753319881452, guid: 1833a39628bc240fb95d1550c22c5aa9, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5029753319881452, guid: 1833a39628bc240fb95d1550c22c5aa9, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5029753319881452, guid: 1833a39628bc240fb95d1550c22c5aa9, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5029753319881452, guid: 1833a39628bc240fb95d1550c22c5aa9, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 403152269929510400, guid: 1833a39628bc240fb95d1550c22c5aa9, type: 3}
       propertyPath: Lens.OrthographicSize
       value: 3

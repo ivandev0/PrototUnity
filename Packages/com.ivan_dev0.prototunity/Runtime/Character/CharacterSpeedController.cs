@@ -7,6 +7,13 @@ namespace PrototUnity.Character {
 		[SerializeField] private InputManager inputSystem;
 		[SerializeField] CharacterMovementStats movementStats;
 
+		[SerializeField] private float sprintSpeed;
+		[SerializeField] private float runSpeed;
+		[SerializeField] private float walkSpeed;
+		
+		private enum MovementState { Walk, Run, Sprint }
+		private  MovementState movementState;
+
 		private void OnEnable() {
 			if (inputSystem == null) {
 				inputSystem = ScriptableObject.CreateInstance<DefaultInputManager>();
@@ -24,15 +31,23 @@ namespace PrototUnity.Character {
 		}
 
 		private void OnWalkRunSwitchEvent() {
-			UnityEngine.Debug.Log("walk");
+			if (movementState != MovementState.Walk) {
+				movementState = MovementState.Walk;
+				movementStats.MaxMovementSpeed = walkSpeed;
+			} else {
+				movementState = MovementState.Run;
+				movementStats.MaxMovementSpeed = runSpeed;
+			}
 		}
 		
 		private void OnSprintStartEvent() {
-			UnityEngine.Debug.Log("start");
+			movementState = MovementState.Sprint; 
+			movementStats.MaxMovementSpeed = sprintSpeed;
 		}
 
 		private void OnSprintEndEvent() {
-			UnityEngine.Debug.Log("end");
+			movementState = MovementState.Run; 
+			movementStats.MaxMovementSpeed = runSpeed;
 		}
 	}
 }
