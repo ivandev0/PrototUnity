@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7952889444942919351}
   - component: {fileID: 8128472131408670894}
   - component: {fileID: 4781948792601050034}
+  - component: {fileID: -7766302600789993760}
   m_Layer: 0
   m_Name: CharacterYBot
   m_TagString: Untagged
@@ -49,7 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df42f5c7b4494db6931cc2d6caac8bbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.Character.CharacterMovementStats
-  maxMovementSpeed: 5
+  maxMovementSpeed: 3.7
   maxRotationSpeed: 5
 --- !u!143 &3244603556446708356
 CharacterController:
@@ -90,8 +91,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: PrototUnity::PrototUnity.Character.CharacterMovement
   inputSystem: {fileID: 0}
   characterController: {fileID: 3244603556446708356}
-  rotationMode: 0
+  cameraRotationController: {fileID: 0}
   movementStats: {fileID: 1454963165242459368}
+  rotationMode: 0
   gravityAcceleration: -9.81
 --- !u!95 &8128472131408670894
 Animator:
@@ -129,6 +131,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: PrototUnity::PrototUnity.Character.CharacterAnimation
   animator: {fileID: 8128472131408670894}
   characterController: {fileID: 3244603556446708356}
+--- !u!114 &-7766302600789993760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1523110374407152969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7442705e073c46daafc4d316eccf250c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.Character.CharacterSpeedController
+  inputSystem: {fileID: 0}
+  movementStats: {fileID: 1454963165242459368}
 --- !u!1 &5438169274385052749
 GameObject:
   m_ObjectHideFlags: 0

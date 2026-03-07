@@ -11,6 +11,9 @@ namespace PrototUnity.Input {
 		public event UnityAction<Vector2> RotateEvent = delegate { };
 		public event UnityAction JumpStartEvent = delegate { };
 		public event UnityAction JumpEndEvent = delegate { };
+		public event UnityAction WalkRunSwitchEvent = delegate { };
+		public event UnityAction SprintStartEvent = delegate { };
+		public event UnityAction SprintEndEvent = delegate { };
 		
 		protected void CallMoveEvent(Vector2 movement) {
 			MoveEvent.Invoke(movement);
@@ -27,11 +30,24 @@ namespace PrototUnity.Input {
 		protected void CallJumpEndEvent() {
 			JumpEndEvent.Invoke();
 		}
+
+		protected void CallWalkRunSwitchEvent() {
+			WalkRunSwitchEvent.Invoke();
+		}
+		
+		protected void CallSprintStartEvent() {
+			SprintStartEvent.Invoke();
+		}
+		
+		protected void CallSprintEndEvent() {
+			SprintEndEvent.Invoke();
+		}
 	}
 	
 	public class DefaultInputManager : InputManager {
 		private void OnEnable() {
 			InitializeMoveAction();
+			InitializeOtherMovementActions();
 			InitializeLookAction();
 			InitializeJumpAction();
 		}
@@ -61,6 +77,17 @@ namespace PrototUnity.Input {
 			jumpAction.performed += _ => CallJumpStartEvent();
 			jumpAction.canceled += _ => CallJumpEndEvent();
 			jumpAction.Enable();
+		}
+
+		private void InitializeOtherMovementActions() {
+			var walkRunSwitchAction = new InputAction("walkRunSwitch", binding: "<Keyboard>/backquote");
+			walkRunSwitchAction.performed += _ => CallWalkRunSwitchEvent();
+			walkRunSwitchAction.Enable();
+
+			var sprintAction = new InputAction("sprint", binding: "<Keyboard>/Shift");
+			sprintAction.performed += _ => CallSprintStartEvent();
+			sprintAction.canceled += _ => CallSprintEndEvent();
+			sprintAction.Enable();
 		}
 	}
 }
