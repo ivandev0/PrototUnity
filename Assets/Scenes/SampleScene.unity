@@ -130,7 +130,6 @@ GameObject:
   - component: {fileID: 204242324}
   - component: {fileID: 204242323}
   - component: {fileID: 204242322}
-  - component: {fileID: 204242321}
   m_Layer: 0
   m_Name: Center
   m_TagString: Untagged
@@ -138,27 +137,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!135 &204242321
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 204242320}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &204242322
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -225,7 +203,7 @@ Transform:
   m_GameObject: {fileID: 204242320}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 3.48, y: 0.98, z: 2.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -717,7 +695,7 @@ Transform:
   m_GameObject: {fileID: 1026607507}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.5, y: 1.47, z: 1.77}
+  m_LocalPosition: {x: 4.15, y: 2.12, z: 1.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -731,14 +709,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1026607507}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 82270f7e3665427498f326b6e15ae661, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpiralMovementExample
-  end: {x: 0, y: 0, z: 0}
-  angularVelocity: 3
-  duration: 2
+  end: {x: 3.48, y: 0.98, z: 2.1}
+  angularVelocity: 4
+  duration: 1
   radiusChangeMode: 0
 --- !u!114 &1026607510
 MonoBehaviour:
@@ -747,12 +725,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1026607507}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e2b34cbb50b74884907b91828a982a24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpiralMovementComparison
-  end: {x: 0, y: 0, z: 0}
+  end: {x: 1, y: 0, z: 1}
   angularVelocity: 4
   duration: 3
 --- !u!1 &1466663518

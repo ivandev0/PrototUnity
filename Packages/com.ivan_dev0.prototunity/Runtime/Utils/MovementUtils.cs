@@ -81,19 +81,19 @@ namespace PrototUnity.Utils {
 			Action onEnd = null
 		) {
 			var time = 0f;
-			var radiusStart = Vector3.Distance(start, end);
+			var radiusStart = Vector3.Distance(new Vector3(start.x, 0, start.z), new Vector3(end.x, 0, end.z));
 			var radius = radiusStart;
 
-			var angleStart = Vector3.SignedAngle(new Vector3(start.x, 0, start.z), Vector3.right, Vector3.up) * Mathf.Deg2Rad;
+			var angleStart = Vector3.SignedAngle(new Vector3(start.x - end.x, 0, start.z - end.z), Vector3.right, Vector3.up) * Mathf.Deg2Rad;
 			var angleRad = angleStart;
 
 			var heightStart = start.y;
 			var height = heightStart;
 			
 			while (time < duration) {
-				var value = new Vector3(Mathf.Cos(angleRad) * radius, height, Mathf.Sin(angleRad) * radius);
+				var value = new Vector3(Mathf.Cos(angleRad) * radius + end.x, height, Mathf.Sin(angleRad) * radius + end.z);
 				angleRad += angularVelocity * Time.deltaTime;
-				height = Mathf.Lerp(heightStart, 0, time / duration);
+				height = Mathf.Lerp(heightStart, end.y, time / duration);
 
 				switch (radiusChangeMode) {
 					case SpiralRadiusChangeMode.Linear: 
