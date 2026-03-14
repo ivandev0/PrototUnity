@@ -66,5 +66,59 @@ namespace PrototUnity.Utils {
 			
 			onEnd?.Invoke();
 		}
+
+		public enum SpiralRadiusChangeMode {
+			Linear, Fibonacci
+		}
+		
+		public static IEnumerator SpiralMovement(
+			Vector3 start,
+			Vector3 end,
+			float angularVelocity = 1f,
+			float duration = 1f,
+			SpiralRadiusChangeMode radiusChangeMode = SpiralRadiusChangeMode.Linear,
+			Action<Vector3> onChange = null,
+			Action onEnd = null
+		) {
+			var time = 0f;
+			var radiusStart = Vector3.Distance(start, end);
+			var radius = radiusStart;
+
+			var angleStart = Vector3.SignedAngle(new Vector3(start.x, 0, start.z), Vector3.right, Vector3.up) * Mathf.Deg2Rad;
+			var angleEnd = angleStart + angularVelocity * duration;
+			var angleRad = angleStart;
+
+			while (time < duration) {
+				var value = new Vector3(Mathf.Cos(angleRad) * radius, start.y, Mathf.Sin(angleRad) * radius);
+				angleRad += angularVelocity * Time.deltaTime;
+
+				switch (radiusChangeMode) {
+					case SpiralRadiusChangeMode.Linear: 
+						radius = Mathf.Lerp(radiusStart, 0, time / duration);
+						break;
+					case SpiralRadiusChangeMode.Fibonacci: 
+						// We need value in range [1, 0]
+						// 1. `GoldenSpiral(angleRad)` returns value in range [1, inf]
+						// 2. `(1 - GoldenSpiral(angleRad))` returns value in range [0, inf]
+						// 3. `(1 - GoldenSpiral(angleRad)) / (1 - GoldenSpiral(angleEnd))` returns value in range [0, 1]
+						// 4. `(1 - (1 - GoldenSpiral(angleRad)) / (1 - GoldenSpiral(angleEnd)))` returns value in range [1, 0]
+						radius = (1 - (1 - GoldenSpiral(angleRad)) / (1 - GoldenSpiral(angleEnd))) * radiusStart;
+						break;
+					default:
+						throw new ArgumentOutOfRangeException(nameof(radiusChangeMode), radiusChangeMode, null);
+				}
+				
+				onChange?.Invoke(value);
+				time += Time.deltaTime;
+				yield return null;
+			}
+			
+			onEnd?.Invoke();
+			yield break;
+
+			float GoldenSpiral(float angle) {
+				return 1.61f * Mathf.Exp(2 * angle / Mathf.PI);
+			}
+		}
 	}
 }
