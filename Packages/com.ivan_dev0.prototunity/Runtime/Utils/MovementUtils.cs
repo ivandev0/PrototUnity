@@ -68,7 +68,7 @@ namespace PrototUnity.Utils {
 		}
 
 		public enum SpiralRadiusChangeMode {
-			Linear, Fibonacci
+			Linear, Fibonacci, Square, Logarithmic
 		}
 		
 		public static IEnumerator SpiralMovement(
@@ -97,12 +97,29 @@ namespace PrototUnity.Utils {
 						radius = Mathf.Lerp(radiusStart, 0, time / duration);
 						break;
 					case SpiralRadiusChangeMode.Fibonacci: 
+						// https://en.wikipedia.org/wiki/Golden_spiral
 						// We need value in range [1, 0]
 						// 1. `GoldenSpiral(angleRad)` returns value in range [1, inf]
-						// 2. `(1 - GoldenSpiral(angleRad))` returns value in range [0, inf]
-						// 3. `(1 - GoldenSpiral(angleRad)) / (1 - GoldenSpiral(angleEnd))` returns value in range [0, 1]
-						// 4. `(1 - (1 - GoldenSpiral(angleRad)) / (1 - GoldenSpiral(angleEnd)))` returns value in range [1, 0]
-						radius = (1 - (1 - GoldenSpiral(angleRad)) / (1 - GoldenSpiral(angleEnd))) * radiusStart;
+						var startFibValue = GoldenSpiral(angleStart);
+						var currentFibValue = GoldenSpiral(angleRad);
+						var endFibValue = GoldenSpiral(angleEnd);
+						// 2. `(startFibValue - currentFibValue)` returns value in range [0, inf]
+						// 3. `(startFibValue - currentFibValue) / (1 - endFibValue)` returns value in range [0, 1]
+						// 4. `(1 - (startFibValue - currentFibValue) / (startFibValue - endFibValue))` returns value in range [1, 0]
+						radius = (1 - (startFibValue - currentFibValue) / (startFibValue - endFibValue)) * radiusStart;
+						break;
+					case SpiralRadiusChangeMode.Square:
+						var currentSqrtValue = Mathf.Sqrt(angleStart) - Mathf.Sqrt(angleRad);
+						var endSqrtValue = Mathf.Sqrt(angleStart) - Mathf.Sqrt(angleEnd);
+						radius = (1 - currentSqrtValue / endSqrtValue) * radiusStart;
+						break;
+					case SpiralRadiusChangeMode.Logarithmic:
+						// https://en.wikipedia.org/wiki/Logarithmic_spiral
+						var a = 1;
+						var k = 1;
+						var currentLogValue = a * Mathf.Exp(k * angleStart) - a * Mathf.Exp(k * angleRad);
+						var endLogValue = a * Mathf.Exp(k * angleStart) - a * Mathf.Exp(k * angleEnd);
+						radius = (1 - currentLogValue / endLogValue) * radiusStart;
 						break;
 					default:
 						throw new ArgumentOutOfRangeException(nameof(radiusChangeMode), radiusChangeMode, null);

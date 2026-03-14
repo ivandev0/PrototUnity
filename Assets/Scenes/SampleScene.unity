@@ -738,7 +738,7 @@ MonoBehaviour:
   end: {x: 0, y: 0, z: 0}
   angularVelocity: 3
   duration: 2
-  radiusChangeMode: 1
+  radiusChangeMode: 3
 --- !u!1 &1466663518
 GameObject:
   m_ObjectHideFlags: 0
