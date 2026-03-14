@@ -85,7 +85,6 @@ namespace PrototUnity.Utils {
 			var radius = radiusStart;
 
 			var angleStart = Vector3.SignedAngle(new Vector3(start.x, 0, start.z), Vector3.right, Vector3.up) * Mathf.Deg2Rad;
-			var angleEnd = angleStart + angularVelocity * duration;
 			var angleRad = angleStart;
 
 			var heightStart = start.y;
@@ -98,32 +97,27 @@ namespace PrototUnity.Utils {
 
 				switch (radiusChangeMode) {
 					case SpiralRadiusChangeMode.Linear: 
-						radius = Mathf.Lerp(radiusStart, 0, time / duration);
+						radius = (1 - time / duration) * radiusStart;
 						break;
 					case SpiralRadiusChangeMode.Fibonacci: 
 						// https://en.wikipedia.org/wiki/Golden_spiral
-						// We need value in range [1, 0]
-						// 1. `GoldenSpiral(angleRad)` returns value in range [1, inf]
-						var startFibValue = GoldenSpiral(angleStart);
-						var currentFibValue = GoldenSpiral(angleRad);
-						var endFibValue = GoldenSpiral(angleEnd);
-						// 2. `(startFibValue - currentFibValue)` returns value in range [0, inf]
-						// 3. `(startFibValue - currentFibValue) / (1 - endFibValue)` returns value in range [0, 1]
-						// 4. `(1 - (startFibValue - currentFibValue) / (startFibValue - endFibValue))` returns value in range [1, 0]
-						radius = (1 - (startFibValue - currentFibValue) / (startFibValue - endFibValue)) * radiusStart;
+						var startFibValue = GoldenSpiral(0);
+						var currentFibValue = GoldenSpiral(1 - time / duration);
+						var endFibValue = GoldenSpiral(1);
+						radius = (currentFibValue - startFibValue) / (endFibValue - startFibValue) * radiusStart;
 						break;
 					case SpiralRadiusChangeMode.Square:
-						var currentSqrtValue = Mathf.Sqrt(angleStart) - Mathf.Sqrt(angleRad);
-						var endSqrtValue = Mathf.Sqrt(angleStart) - Mathf.Sqrt(angleEnd);
-						radius = (1 - currentSqrtValue / endSqrtValue) * radiusStart;
+						var currentSqrtValue = Mathf.Sqrt(1 - time / duration);
+						radius = currentSqrtValue * radiusStart;
 						break;
 					case SpiralRadiusChangeMode.Logarithmic:
 						// https://en.wikipedia.org/wiki/Logarithmic_spiral
 						var a = 1;
 						var k = 1;
-						var currentLogValue = a * Mathf.Exp(k * angleStart) - a * Mathf.Exp(k * angleRad);
-						var endLogValue = a * Mathf.Exp(k * angleStart) - a * Mathf.Exp(k * angleEnd);
-						radius = (1 - currentLogValue / endLogValue) * radiusStart;
+						var startLogValue = a;
+						var currentLogValue = a * Mathf.Exp(k * (1 - time / duration));
+						var endLogValue = a * Mathf.Exp(k);
+						radius = (currentLogValue - startLogValue) / (endLogValue - startLogValue) * radiusStart;
 						break;
 					default:
 						throw new ArgumentOutOfRangeException(nameof(radiusChangeMode), radiusChangeMode, null);

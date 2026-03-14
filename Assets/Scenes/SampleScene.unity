@@ -753,7 +753,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpiralMovementComparison
   end: {x: 0, y: 0, z: 0}
-  angularVelocity: 5
+  angularVelocity: 4
   duration: 3
 --- !u!1 &1466663518
 GameObject:
