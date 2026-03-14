@@ -70,7 +70,7 @@ namespace PrototUnity.Utils {
 		public enum SpiralRadiusChangeMode {
 			Linear, Fibonacci, Square, Logarithmic
 		}
-		
+
 		public static IEnumerator SpiralMovement(
 			Vector3 start,
 			Vector3 end,
@@ -80,6 +80,23 @@ namespace PrototUnity.Utils {
 			Action<Vector3> onChange = null,
 			Action onEnd = null
 		) {
+			yield return SpiralMovement(
+				start,
+				() => end,
+				angularVelocity, duration, radiusChangeMode, onChange, onEnd
+			);
+		}
+		
+		public static IEnumerator SpiralMovement(
+			Vector3 start,
+			Func<Vector3> endFunc,
+			float angularVelocity = 1f,
+			float duration = 1f,
+			SpiralRadiusChangeMode radiusChangeMode = SpiralRadiusChangeMode.Linear,
+			Action<Vector3> onChange = null,
+			Action onEnd = null
+		) {
+			var end = endFunc();
 			var time = 0f;
 			var radiusStart = Vector3.Distance(new Vector3(start.x, 0, start.z), new Vector3(end.x, 0, end.z));
 			var radius = radiusStart;
@@ -94,6 +111,7 @@ namespace PrototUnity.Utils {
 				var value = new Vector3(Mathf.Cos(angleRad) * radius + end.x, height, Mathf.Sin(angleRad) * radius + end.z);
 				angleRad += angularVelocity * Time.deltaTime;
 				height = Mathf.Lerp(heightStart, end.y, time / duration);
+				end = endFunc();
 
 				switch (radiusChangeMode) {
 					case SpiralRadiusChangeMode.Linear: 
