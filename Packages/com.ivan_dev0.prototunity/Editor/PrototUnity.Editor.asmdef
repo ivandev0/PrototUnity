@@ -1,8 +1,9 @@
 {
     "name": "PrototUnity.Editor",
-    "rootNamespace": "PrototUnity.Editor",
+    "rootNamespace": "PrototUnity",
     "references": [
-        "PrototUnity"
+        "PrototUnity",
+        "UnityEditor.UI"
     ],
     "includePlatforms": [
         "Editor"
