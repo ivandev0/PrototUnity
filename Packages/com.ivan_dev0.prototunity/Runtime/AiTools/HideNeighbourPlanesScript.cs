@@ -2,34 +2,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace PrototUnity.Editor.AiTools {
+namespace PrototUnity.AiTools {
 	public class HideNeighbourPlanesScript : MonoBehaviour {
 		[FormerlySerializedAs("m_NormalTolerance")] [Tooltip("Max |n_A + n_B| for two face normals to count as opposite.")] [SerializeField, Range(0.001f, 0.1f)]
-		private float normalTolerance = 0.02f;
+		private float normalTolerance = HideNeighbourPlanes.defaultNormalTolerance;
 
 		[Tooltip("Max plane-distance gap to treat two faces as coplanar. Increase if Cell Shrink on the generator is large.")]
 		[SerializeField]
-		private float planeTolerance = 0.1f;
+		private float planeTolerance = HideNeighbourPlanes.defaultPlaneTolerance;
 
 		[ContextMenu("Hide Neighbor Faces")]
 		public void HideNeighbors() {
-			HideNeighbourPlanes.HideNeighbors(GetComponentsInChildren<MeshFilter>(includeInactive: true), normalTolerance, planeTolerance);
+			HideNeighbourPlanes.HideNeighbors(gameObject, normalTolerance, planeTolerance);
 		}
 
 		[ContextMenu("Show All Faces")]
 		public void ShowAll() {
-			HideNeighbourPlanes.ShowAll(GetComponentsInChildren<MeshFilter>(includeInactive: true));
+			HideNeighbourPlanes.ShowAll(gameObject);
 		}
 	}
 
 	public static class HideNeighbourPlanes {
+		internal const float defaultNormalTolerance = 0.02f;
+		internal const float defaultPlaneTolerance = 0.1f;
+		
 		private struct FaceInfo {
 			public GameObject target;
 			public Vector3 normal;
 			public float distanceToPlaneFromOrigin;
 		}
 
-		public static void HideNeighbors(MeshFilter[] meshFilters, float normalTolerance, float planeTolerance) {
+		public static void HideNeighbors(GameObject gameObject, float normalTolerance = defaultNormalTolerance, float planeTolerance = defaultPlaneTolerance) {
+			var meshFilters = gameObject.GetComponentsInChildren<MeshFilter>(includeInactive: true);
 			var faces = CollectFaces(meshFilters);
 			var pairs = 0;
 			var used = new bool[faces.Count];
@@ -52,7 +56,8 @@ namespace PrototUnity.Editor.AiTools {
 			Debug.Log($"Hid {pairs} neighbor face pair(s) ({pairs * 2} faces).");
 		}
 
-		public static void ShowAll(MeshFilter[] meshFilters) {
+		public static void ShowAll(GameObject gameObject) {
+			var meshFilters = gameObject.GetComponentsInChildren<MeshFilter>(includeInactive: true);
 			foreach (var meshFilter in meshFilters) {
 				meshFilter.gameObject.SetActive(true);
 			}
