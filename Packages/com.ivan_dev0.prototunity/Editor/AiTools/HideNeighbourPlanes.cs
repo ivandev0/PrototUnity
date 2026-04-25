@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace PrototUnity.Editor.AiTools {
-	public class HideNeighbourPlanes : MonoBehaviour {
+	public class HideNeighbourPlanesScript : MonoBehaviour {
 		[FormerlySerializedAs("m_NormalTolerance")] [Tooltip("Max |n_A + n_B| for two face normals to count as opposite.")] [SerializeField, Range(0.001f, 0.1f)]
 		private float normalTolerance = 0.02f;
 
@@ -11,15 +11,26 @@ namespace PrototUnity.Editor.AiTools {
 		[SerializeField]
 		private float planeTolerance = 0.1f;
 
+		[ContextMenu("Hide Neighbor Faces")]
+		public void HideNeighbors() {
+			HideNeighbourPlanes.HideNeighbors(GetComponentsInChildren<MeshFilter>(includeInactive: true), normalTolerance, planeTolerance);
+		}
+
+		[ContextMenu("Show All Faces")]
+		public void ShowAll() {
+			HideNeighbourPlanes.ShowAll(GetComponentsInChildren<MeshFilter>(includeInactive: true));
+		}
+	}
+
+	public static class HideNeighbourPlanes {
 		private struct FaceInfo {
 			public GameObject target;
 			public Vector3 normal;
 			public float distanceToPlaneFromOrigin;
 		}
 
-		[ContextMenu("Hide Neighbor Faces")]
-		public void HideNeighbors() {
-			var faces = CollectFaces();
+		public static void HideNeighbors(MeshFilter[] meshFilters, float normalTolerance, float planeTolerance) {
+			var faces = CollectFaces(meshFilters);
 			var pairs = 0;
 			var used = new bool[faces.Count];
 
@@ -38,19 +49,17 @@ namespace PrototUnity.Editor.AiTools {
 				}
 			}
 
-			Debug.Log($"Hid {pairs} neighbor face pair(s) ({pairs * 2} faces).", this);
+			Debug.Log($"Hid {pairs} neighbor face pair(s) ({pairs * 2} faces).");
 		}
 
-		[ContextMenu("Show All Faces")]
-		public void ShowAll() {
-			var meshFilters = GetComponentsInChildren<MeshFilter>(includeInactive: true);
-			foreach (var meshFilter in meshFilters)
+		public static void ShowAll(MeshFilter[] meshFilters) {
+			foreach (var meshFilter in meshFilters) {
 				meshFilter.gameObject.SetActive(true);
+			}
 		}
 
-		private List<FaceInfo> CollectFaces() {
+		private static List<FaceInfo> CollectFaces(MeshFilter[] meshFilters) {
 			var result = new List<FaceInfo>();
-			var meshFilters = GetComponentsInChildren<MeshFilter>(includeInactive: true);
 			foreach (var mf in meshFilters) {
 				var mesh = mf.sharedMesh;
 				if (mesh == null || mesh.vertexCount < 3) continue;
