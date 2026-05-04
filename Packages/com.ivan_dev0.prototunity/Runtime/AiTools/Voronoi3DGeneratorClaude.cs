@@ -1,19 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Random = System.Random;
 
 namespace PrototUnity.AiTools {
 	public class Voronoi3DGeneratorClaude : MonoBehaviour {
 		[Header("Generation")] [SerializeField]
 		private int seed = 12345;
 
-		[SerializeField, Min(1)] private int cellCount = 20;
+		[SerializeField, Min(1)] private int cellCount = 5;
 		[SerializeField] private Vector3 cubeSize = new Vector3(10f, 10f, 10f);
-
-		[Tooltip("Minimum distance between seed points, as a fraction of the smaller cube dimension.")]
-		[Range(0f, 0.5f)]
-		[SerializeField]
-		private float minSeedSpacing = 0.1f;
 
 		[Tooltip("If enabled, all cells are clipped to stay inside the cube.")] [SerializeField]
 		private bool clipToCube = true;
@@ -35,19 +29,21 @@ namespace PrototUnity.AiTools {
 		public void Generate() {
 			Clear();
 
+			Random.InitState(seed);
+			
 			var seeds = PickSeeds();
 			var baseMat = faceMaterial != null ? faceMaterial : CreateDefaultMaterial();
 
-			var rng = new Random(seed);
 			for (var i = 0; i < seeds.Count; i++) {
 				var cell = BuildCell(seeds, i);
 				if (cell == null || cell.Faces.Count == 0) continue;
 
 				Color tint = tintByCell
-					? Color.HSVToRGB((float)rng.NextDouble(), 0.45f, 0.95f)
+					? Color.HSVToRGB(Random.value, 0.45f, 0.95f)
 					: Color.white;
 				CreateCellGameObject($"Cell_{i}", cell, baseMat, tint);
 			}
+			return;
 		}
 
 		[ContextMenu("Clear")]
@@ -60,32 +56,21 @@ namespace PrototUnity.AiTools {
 		}
 
 		private List<Vector3> PickSeeds() {
-			var rng = new Random(seed);
 			var seeds = new List<Vector3>();
-			var half = cubeSize * 0.5f;
-			var minDim = Mathf.Min(cubeSize.x, Mathf.Min(cubeSize.y, cubeSize.z));
-			var minDist = minSeedSpacing * minDim;
-			var minDistSq = minDist * minDist;
-
-			var maxAttempts = Mathf.Max(200, cellCount * 50);
-			var attempts = 0;
-			while (seeds.Count < cellCount && attempts < maxAttempts) {
-				attempts++;
-				var p = new Vector3(
-					((float)rng.NextDouble() * 2f - 1f) * half.x,
-					((float)rng.NextDouble() * 2f - 1f) * half.y,
-					((float)rng.NextDouble() * 2f - 1f) * half.z);
-
-				var ok = true;
-				for (int i = 0; i < seeds.Count; i++) {
-					if (!((seeds[i] - p).sqrMagnitude < minDistSq)) continue;
-					ok = false;
-					break;
+			var space = cubeSize / cellCount;
+			for (var x = 0; x < cellCount; x++) {
+				for (var y = 0; y < cellCount; y++) {
+					for (var z = 0; z < cellCount; z++) {
+						var center = new Vector3(
+							space.x * 0.5f + x * space.x,
+							space.y * 0.5f + y * space.y,
+							space.z * 0.5f + z * space.z
+						);
+						seeds.Add(-cubeSize * 0.5f + center);
+					}
 				}
-
-				if (ok) seeds.Add(p);
 			}
-
+			
 			return seeds;
 		}
 
@@ -96,13 +81,13 @@ namespace PrototUnity.AiTools {
 
 			for (var j = 0; j < seeds.Count; j++) {
 				if (j == index) continue;
-				var diff = seeds[j] - seeds[index];
-				var len = diff.magnitude;
-				if (len < EPSILON) continue;
+				var vectorBetweenCenters = seeds[j] - seeds[index];
+				var lenght = vectorBetweenCenters.magnitude;
+				if (lenght < EPSILON) continue;
 				
-				var n = diff / len;
-				var d = Vector3.Dot(n, (seeds[index] + seeds[j]) * 0.5f);
-				poly.ClipByPlane(n, d);
+				var middlePoint = (seeds[index] + seeds[j]) * 0.5f;
+				var clippingPlaneOffsetFromOrigin = Vector3.Dot(vectorBetweenCenters.normalized, middlePoint);
+				poly.ClipByPlane(vectorBetweenCenters.normalized, clippingPlaneOffsetFromOrigin);
 				if (poly.Faces.Count == 0) return null;
 			}
 
@@ -248,47 +233,49 @@ namespace PrototUnity.AiTools {
 				return poly;
 			}
 
-			// Keep half-space { x : dot(n, x) <= d }.
-			public void ClipByPlane(Vector3 n, float d) {
+			// Keep half-space { x : dot(normal, x) <= clippingPlaneOffsetFromOrigin }.
+			public void ClipByPlane(Vector3 normal, float clippingPlaneOffsetFromOrigin) {
 				var newFaces = new List<Face>(Faces.Count + 1);
 				var capEdges = new List<(Vector3 entry, Vector3 exit)>();
 
-				for (int i = 0; i < Faces.Count; i++)
-					ClipFace(Faces[i], n, d, newFaces, capEdges);
+				foreach (var face in Faces) {
+					ClipFace(face, normal, clippingPlaneOffsetFromOrigin, newFaces, capEdges);
+				}
 
-				Face cap = BuildCapFace(capEdges, n);
+				var cap = BuildCapFace(capEdges, normal);
 				if (cap != null) newFaces.Add(cap);
 
 				Faces = newFaces;
 			}
 
-			private static void ClipFace(Face face, Vector3 n, float d,
-				List<Face> newFaces, List<(Vector3 entry, Vector3 exit)> capEdges) {
-				var clipped = new List<Vector3>(face.Vertices.Count + 2);
+			private static void ClipFace(
+				Face face, Vector3 clipPlaneNormal, float clipPlaneOffsetFromOrigin, List<Face> newFaces, List<(Vector3 entry, Vector3 exit)> capEdges
+			) {
+				var nVerts = face.Vertices.Count;
+				var clipped = new List<Vector3>(nVerts + 2);
 				Vector3 entryCut = default, exitCut = default;
 				bool hasEntry = false, hasExit = false;
-				int nVerts = face.Vertices.Count;
 
-				for (int i = 0; i < nVerts; i++) {
-					Vector3 a = face.Vertices[i];
-					Vector3 b = face.Vertices[(i + 1) % nVerts];
-					float da = Vector3.Dot(n, a) - d;
-					float db = Vector3.Dot(n, b) - d;
-					bool aIn = da <= EPSILON;
-					bool bIn = db <= EPSILON;
+				for (var i = 0; i < nVerts; i++) {
+					var a = face.Vertices[i];
+					var b = face.Vertices[(i + 1) % nVerts];
+					var da = Vector3.Dot(clipPlaneNormal, a) - clipPlaneOffsetFromOrigin;
+					var db = Vector3.Dot(clipPlaneNormal, b) - clipPlaneOffsetFromOrigin;
+					var aIn = da <= EPSILON;
+					var bIn = db <= EPSILON;
 
 					if (aIn) clipped.Add(a);
 					if (aIn && !bIn) {
 						float t = da / (da - db);
-						Vector3 p = Vector3.Lerp(a, b, t);
-						clipped.Add(p);
-						exitCut = p;
+						Vector3 intersectionPoint = Vector3.Lerp(a, b, t);
+						clipped.Add(intersectionPoint);
+						exitCut = intersectionPoint;
 						hasExit = true;
 					} else if (!aIn && bIn) {
 						float t = da / (da - db);
-						Vector3 p = Vector3.Lerp(a, b, t);
-						clipped.Add(p);
-						entryCut = p;
+						Vector3 intersectionPoint = Vector3.Lerp(a, b, t);
+						clipped.Add(intersectionPoint);
+						entryCut = intersectionPoint;
 						hasEntry = true;
 					}
 				}
@@ -303,14 +290,16 @@ namespace PrototUnity.AiTools {
 			private static List<Vector3> RemoveNearDuplicates(List<Vector3> pts) {
 				if (pts.Count < 2) return pts;
 				var result = new List<Vector3>(pts.Count);
-				float e2 = EPSILON * EPSILON;
+				var e2 = EPSILON * EPSILON;
 				for (int i = 0; i < pts.Count; i++) {
-					if (result.Count == 0 || (result[result.Count - 1] - pts[i]).sqrMagnitude > e2)
+					if (result.Count == 0 || (result[^1] - pts[i]).sqrMagnitude > e2) {
 						result.Add(pts[i]);
+					}
 				}
 
-				if (result.Count > 1 && (result[0] - result[result.Count - 1]).sqrMagnitude < e2)
+				if (result.Count > 1 && (result[0] - result[^1]).sqrMagnitude < e2) {
 					result.RemoveAt(result.Count - 1);
+				}
 				return result;
 			}
 
