@@ -130,6 +130,9 @@ namespace PrototUnity.AiTools {
 				mr.sharedMaterial = mat;
 				mf.sharedMesh = BuildFaceMesh(shrunk, face.Normal);
 			}
+
+			var meshCollider = cellGO.AddComponent<MeshCollider>();
+			meshCollider.sharedMesh = Combine(cellGO.GetComponentsInChildren<MeshFilter>());
 		}
 
 		private static Mesh BuildFaceMesh(List<Vector3> verts, Vector3 normal) {
@@ -160,6 +163,22 @@ namespace PrototUnity.AiTools {
 			var mat = new Material(shader) { name = "VoronoiDefault" };
 			mat.color = new Color(0.75f, 0.75f, 0.8f, 1f);
 			return mat;
+		}
+
+		private static Mesh Combine(MeshFilter[] meshFilters) {
+			var instances = new CombineInstance[meshFilters.Length];
+
+			for (var i = 0; i < meshFilters.Length; i++) {
+				var meshFilter = meshFilters[i];
+            
+				instances[i] = new CombineInstance {
+					mesh = meshFilter.sharedMesh,
+				};
+			}
+
+			var combinedMesh = new Mesh();
+			combinedMesh.CombineMeshes(instances, mergeSubMeshes:true, useMatrices:false);
+			return combinedMesh;
 		}
 
 		// ------------------------------------------------------------------
