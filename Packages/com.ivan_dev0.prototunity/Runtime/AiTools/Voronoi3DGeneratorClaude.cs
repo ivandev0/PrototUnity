@@ -95,13 +95,14 @@ namespace PrototUnity.AiTools {
 		}
 
 		private void CreateCellGameObject(string cellName, ConvexPolyhedron cell, Material baseMat, Color tint) {
+			Vector3 centroid = cell.ComputeCentroid();
+
 			var cellGO = new GameObject(cellName);
 			cellGO.transform.SetParent(transform, worldPositionStays: false);
-			cellGO.transform.localPosition = Vector3.zero;
+			cellGO.transform.localPosition = centroid;
 			cellGO.transform.localRotation = Quaternion.identity;
 			cellGO.transform.localScale = Vector3.one;
 
-			Vector3 centroid = cell.ComputeCentroid();
 			float keep = 1f - cellShrink;
 
 			Material mat = baseMat;
@@ -113,8 +114,10 @@ namespace PrototUnity.AiTools {
 			for (int i = 0; i < cell.Faces.Count; i++) {
 				ConvexPolyhedron.Face face = cell.Faces[i];
 				var shrunk = new List<Vector3>(face.Vertices.Count);
-				for (int v = 0; v < face.Vertices.Count; v++)
-					shrunk.Add(Vector3.Lerp(centroid, face.Vertices[v], keep));
+				for (int v = 0; v < face.Vertices.Count; v++) {
+					var shrunkVertex = Vector3.Lerp(centroid, face.Vertices[v], keep);
+					shrunk.Add(shrunkVertex - centroid);
+				}
 
 				var faceGO = new GameObject($"Face_{i}");
 				faceGO.transform.SetParent(cellGO.transform, worldPositionStays: false);
