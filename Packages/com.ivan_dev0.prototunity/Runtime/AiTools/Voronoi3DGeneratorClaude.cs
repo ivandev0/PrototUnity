@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace PrototUnity.AiTools {
@@ -283,8 +284,10 @@ namespace PrototUnity.AiTools {
 					var b = face.Vertices[(i + 1) % nVerts];
 					var da = Vector3.Dot(clipPlaneNormal, a) - clipPlaneOffsetFromOrigin;
 					var db = Vector3.Dot(clipPlaneNormal, b) - clipPlaneOffsetFromOrigin;
-					var aIn = da <= EPSILON;
-					var bIn = db <= EPSILON;
+					if (Mathf.Abs(da) <= EPSILON) da = 0f;
+					if (Mathf.Abs(db) <= EPSILON) db = 0f;
+					var aIn = da <= 0f;
+					var bIn = db <= 0f;
 
 					if (aIn) clipped.Add(a);
 					if (aIn && !bIn) {
@@ -329,46 +332,47 @@ namespace PrototUnity.AiTools {
 				if (edges.Count < 3) return null;
 				float e2 = EPSILON * EPSILON * 100f;
 
-				var remaining = new List<(Vector3 entry, Vector3 exit)>(edges);
-				var cap = new List<Vector3>();
-				var current = remaining[0];
-				remaining.RemoveAt(0);
-				cap.Add(current.entry);
-				cap.Add(current.exit);
-
-				int safety = edges.Count * 2;
-				while (remaining.Count > 0 && safety-- > 0) {
-					Vector3 needed = current.exit;
-					int best = -1;
-					float bestSq = e2;
-					for (int i = 0; i < remaining.Count; i++) {
-						float dsq = (remaining[i].entry - needed).sqrMagnitude;
-						if (dsq < bestSq) {
-							bestSq = dsq;
-							best = i;
-						}
-					}
-
-					if (best < 0) return null;
-					current = remaining[best];
-					remaining.RemoveAt(best);
-					if ((current.exit - cap[0]).sqrMagnitude > e2)
-						cap.Add(current.exit);
+				var points = new List<Vector3>();
+				foreach (var edge in edges) {
+					AddUnique(points, edge.entry, e2);
+					AddUnique(points, edge.exit, e2);
 				}
 
-				if (cap.Count < 3) return null;
-				return new Face { Vertices = cap, Normal = normal };
+				if (points.Count < 3) return null;
+
+				var centroid = points.Aggregate(Vector3.zero, (current, p) => current + p);
+				centroid /= points.Count;
+
+				// Pick any reference vector not parallel to normal so normal × reference is non-zero.
+				// Default to Y; fall back to X when normal is itself mostly along Y.
+				var reference = Mathf.Abs(normal.y) > 0.9f ? Vector3.right : Vector3.up;
+				var u = Vector3.Cross(normal, reference).normalized;
+				var v = Vector3.Cross(normal, u).normalized;
+
+				points.Sort((p1, p2) => {
+					var d1 = p1 - centroid;
+					var d2 = p2 - centroid;
+					var a1 = Mathf.Atan2(Vector3.Dot(v, d1), Vector3.Dot(u, d1));
+					var a2 = Mathf.Atan2(Vector3.Dot(v, d2), Vector3.Dot(u, d2));
+					return a1.CompareTo(a2);
+				});
+
+				return new Face { Vertices = points, Normal = normal };
+			}
+
+			private static void AddUnique(List<Vector3> list, Vector3 p, float error) {
+				foreach (var existing in list) {
+					if ((p - existing).sqrMagnitude < error) return;
+				}
+				list.Add(p);
 			}
 
 			public Vector3 ComputeCentroid() {
-				Vector3 sum = Vector3.zero;
-				int count = 0;
-				for (int i = 0; i < Faces.Count; i++) {
-					var verts = Faces[i].Vertices;
-					for (int v = 0; v < verts.Count; v++) {
-						sum += verts[v];
-						count++;
-					}
+				var sum = Vector3.zero;
+				var count = 0;
+				foreach (var face in Faces) {
+					sum += face.Vertices.Aggregate(Vector3.zero, (current, vec) => current + vec);
+					count += face.Vertices.Count;
 				}
 
 				return count > 0 ? sum / count : Vector3.zero;
