@@ -10,9 +10,6 @@ namespace PrototUnity.AiTools {
 		[SerializeField, Min(1)] private int cellCount = 5;
 		[SerializeField] private Vector3 cubeSize = new Vector3(10f, 10f, 10f);
 
-		[Tooltip("If enabled, all cells are clipped to stay inside the cube.")] [SerializeField]
-		private bool clipToCube = true;
-
 		[Tooltip("If enabled, all cells are generated uniformly")] [SerializeField]
 		private bool uniform = true;
 		
@@ -93,9 +90,7 @@ namespace PrototUnity.AiTools {
 		}
 
 		private ConvexPolyhedron BuildCell(List<Vector3> seeds, int index) {
-			var poly = clipToCube
-				? ConvexPolyhedron.CreateBox(cubeSize)
-				: ConvexPolyhedron.CreateBox(cubeSize * 4f);
+			var poly = ConvexPolyhedron.CreateBox(cubeSize);
 
 			for (var j = 0; j < seeds.Count; j++) {
 				if (j == index) continue;
