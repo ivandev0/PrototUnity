@@ -7,7 +7,7 @@ namespace PrototUnity.AiTools {
 		[Header("Generation")] [SerializeField]
 		private int seed = 12345;
 
-		[SerializeField, Min(1)] private int cellCount = 5;
+		[SerializeField] private Vector3 cellCount = new Vector3Int(1, 1, 1);
 		[SerializeField] private Vector3 cubeSize = new Vector3(10f, 10f, 10f);
 
 		[Tooltip("If enabled, all cells are generated uniformly")] [SerializeField]
@@ -57,15 +57,16 @@ namespace PrototUnity.AiTools {
 		}
 
 		private List<Vector3> PickSeeds() {
+			var totalSeeds = cellCount.x * cellCount.y * cellCount.z;
 			var seeds = new List<Vector3>();
-			var maxAttempts = Mathf.Max(200, cellCount * 50);
+			var maxAttempts = Mathf.Max(200, totalSeeds * 50);
 
-			var space = cubeSize / cellCount;
-			for (var x = 0; x < cellCount; x++) {
-				for (var y = 0; y < cellCount; y++) {
-					for (var z = 0; z < cellCount; z++) { 
+			var space = new Vector3(cubeSize.x / cellCount.x, cubeSize.y / cellCount.y, cubeSize.z / cellCount.z);
+			for (var x = 0; x < cellCount.x; x++) {
+				for (var y = 0; y < cellCount.y; y++) {
+					for (var z = 0; z < cellCount.z; z++) { 
 						var attempts = 0;
-						while (seeds.Count < cellCount * cellCount * cellCount && attempts < maxAttempts) {
+						while (seeds.Count < totalSeeds && attempts < maxAttempts) {
 							attempts++;
 
 							var center = new Vector3(
@@ -74,7 +75,7 @@ namespace PrototUnity.AiTools {
 								space.z * 0.5f + z * space.z
 							);
 
-							var randomnessPower = uniform ? 0 : Mathf.Max(0, cellCount - y - 1) * 0.1f; 
+							var randomnessPower = uniform ? 0 : Mathf.Max(0, cellCount.y - y - 1) * 0.1f; 
 							var point = -cubeSize * 0.5f + center + Random.insideUnitSphere * randomnessPower;
 							if (point.x < -cubeSize.x * 0.5f || point.x > cubeSize.x * 0.5f) continue;
 							if (point.y < -cubeSize.y * 0.5f || point.y > cubeSize.y * 0.5f) continue;
