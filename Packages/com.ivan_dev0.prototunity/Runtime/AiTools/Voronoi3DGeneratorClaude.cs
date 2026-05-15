@@ -13,6 +13,9 @@ namespace PrototUnity.AiTools {
 		[Tooltip("If enabled, all cells are clipped to stay inside the cube.")] [SerializeField]
 		private bool clipToCube = true;
 
+		[Tooltip("If enabled, all cells are generated uniformly")] [SerializeField]
+		private bool uniform = true;
+		
 		[Header("Appearance")]
 		[Tooltip("Shrinks each cell around its centroid so adjacent cells don't touch.")]
 		[Range(0f, 0.2f)]
@@ -58,16 +61,30 @@ namespace PrototUnity.AiTools {
 
 		private List<Vector3> PickSeeds() {
 			var seeds = new List<Vector3>();
+			var maxAttempts = Mathf.Max(200, cellCount * 50);
+
 			var space = cubeSize / cellCount;
 			for (var x = 0; x < cellCount; x++) {
 				for (var y = 0; y < cellCount; y++) {
-					for (var z = 0; z < cellCount; z++) {
-						var center = new Vector3(
-							space.x * 0.5f + x * space.x,
-							space.y * 0.5f + y * space.y,
-							space.z * 0.5f + z * space.z
-						);
-						seeds.Add(-cubeSize * 0.5f + center);
+					for (var z = 0; z < cellCount; z++) { 
+						var attempts = 0;
+						while (seeds.Count < cellCount * cellCount * cellCount && attempts < maxAttempts) {
+							attempts++;
+
+							var center = new Vector3(
+								space.x * 0.5f + x * space.x,
+								space.y * 0.5f + y * space.y,
+								space.z * 0.5f + z * space.z
+							);
+
+							var randomnessPower = uniform ? 0 : Mathf.Max(0, cellCount - y - 1) * 0.1f; 
+							var point = -cubeSize * 0.5f + center + Random.insideUnitSphere * randomnessPower;
+							if (point.x < -cubeSize.x * 0.5f || point.x > cubeSize.x * 0.5f) continue;
+							if (point.y < -cubeSize.y * 0.5f || point.y > cubeSize.y * 0.5f) continue;
+							if (point.z < -cubeSize.z * 0.5f || point.z > cubeSize.z * 0.5f) continue;
+							seeds.Add(point);
+							break;
+						}
 					}
 				}
 			}
