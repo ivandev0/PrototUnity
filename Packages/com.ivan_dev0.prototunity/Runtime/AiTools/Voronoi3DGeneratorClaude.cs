@@ -20,6 +20,7 @@ namespace PrototUnity.AiTools {
 		private float cellShrink = 0.02f;
 
 		[SerializeField] private Material faceMaterial;
+		[SerializeField] private GameObject cellPrefab;
 
 		[Tooltip("If true, each face gets its own material instance tinted by the cell color.")] [SerializeField]
 		private bool tintByCell = true;
@@ -111,8 +112,14 @@ namespace PrototUnity.AiTools {
 		private void CreateCellGameObject(string cellName, ConvexPolyhedron cell, Material baseMat, Color tint) {
 			Vector3 centroid = cell.ComputeCentroid();
 
-			var cellGO = new GameObject(cellName);
-			cellGO.transform.SetParent(transform, worldPositionStays: false);
+			GameObject cellGO;
+			if (cellPrefab == null) {
+				cellGO = new GameObject(cellName);
+				cellGO.transform.SetParent(transform, worldPositionStays: false);
+			} else { 
+				cellGO = Instantiate(cellPrefab, transform, false); 
+				cellGO.name = cellName;
+			}
 			cellGO.transform.localPosition = centroid;
 			cellGO.transform.localRotation = Quaternion.identity;
 			cellGO.transform.localScale = Vector3.one;
