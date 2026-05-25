@@ -62,8 +62,8 @@ namespace PrototUnity.AiTools {
 			var maxAttempts = Mathf.Max(200, totalSeeds * 50);
 
 			var space = new Vector3(cubeSize.x / cellCount.x, cubeSize.y / cellCount.y, cubeSize.z / cellCount.z);
-			for (var x = 0; x < cellCount.x; x++) {
-				for (var y = 0; y < cellCount.y; y++) {
+			for (var y = 0; y < cellCount.y; y++) {
+				for (var x = 0; x < cellCount.x; x++) {
 					for (var z = 0; z < cellCount.z; z++) { 
 						var attempts = 0;
 						while (seeds.Count < totalSeeds && attempts < maxAttempts) {
