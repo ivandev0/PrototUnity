@@ -29,8 +29,62 @@ namespace PrototUnity.AiTools {
 
 		[ContextMenu("Generate")]
 		public void Generate() {
-			Clear();
+			new Voronoi3DGenerator(seed, cellCount, cubeSize, uniform, cellShrink, faceMaterial, cellPrefab, tintByCell, transform)
+				.Generate();
+		}
 
+		[ContextMenu("Clear")]
+		public void Clear() {
+			for (var i = transform.childCount - 1; i >= 0; i--) {
+				var child = transform.GetChild(i).gameObject;
+				if (Application.isPlaying) Destroy(child);
+				else DestroyImmediate(child);
+			}
+		}
+	}
+
+	public class Voronoi3DGenerator {
+		private readonly int seed;
+
+		private readonly Vector3 cellCount;
+		private readonly Vector3 cubeSize;
+
+		private readonly bool uniform;
+		
+		private readonly float cellShrink;
+
+		private readonly Material faceMaterial;
+		private readonly GameObject cellPrefab;
+
+		private readonly bool tintByCell;
+		
+		private readonly Transform parent;
+
+		private const float EPSILON = 1e-5f;
+
+		public Voronoi3DGenerator(
+			int seed,
+			Vector3 cellCount,
+			Vector3 cubeSize,
+			bool uniform,
+			float cellShrink,
+			Material faceMaterial,
+			GameObject cellPrefab,
+			bool tintByCell,
+			Transform parent
+		) {
+			this.seed = seed;
+			this.cellCount = cellCount;
+			this.cubeSize = cubeSize;
+			this.uniform = uniform;
+			this.cellShrink = cellShrink;
+			this.faceMaterial = faceMaterial;
+			this.cellPrefab = cellPrefab;
+			this.tintByCell = tintByCell;
+			this.parent = parent;
+		}
+		
+		public void Generate() {
 			Random.InitState(seed);
 			
 			var seeds = PickSeeds();
@@ -45,18 +99,8 @@ namespace PrototUnity.AiTools {
 					: Color.white;
 				CreateCellGameObject($"Cell_{i}", cell, baseMat, tint);
 			}
-			return;
 		}
-
-		[ContextMenu("Clear")]
-		public void Clear() {
-			for (var i = transform.childCount - 1; i >= 0; i--) {
-				var child = transform.GetChild(i).gameObject;
-				if (Application.isPlaying) Destroy(child);
-				else DestroyImmediate(child);
-			}
-		}
-
+		
 		private List<Vector3> PickSeeds() {
 			var totalSeeds = cellCount.x * cellCount.y * cellCount.z;
 			var seeds = new List<Vector3>();
@@ -115,9 +159,9 @@ namespace PrototUnity.AiTools {
 			GameObject cellGO;
 			if (cellPrefab == null) {
 				cellGO = new GameObject(cellName);
-				cellGO.transform.SetParent(transform, worldPositionStays: false);
+				cellGO.transform.SetParent(parent, worldPositionStays: false);
 			} else { 
-				cellGO = Instantiate(cellPrefab, transform, false); 
+				cellGO = GameObject.Instantiate(cellPrefab, parent, false); 
 				cellGO.name = cellName;
 			}
 			cellGO.transform.localPosition = centroid;
