@@ -186,7 +186,7 @@ namespace PrototUnity.AiTools {
 
 				var faceGO = new GameObject($"Face_{i}");
 				faceGO.transform.SetParent(cellGO.transform, worldPositionStays: false);
-				faceGO.transform.localPosition = Vector3.zero;
+				faceGO.transform.localPosition = shrunk.Aggregate(Vector3.zero, (current, vec) => current + vec) / shrunk.Count;
 				faceGO.transform.localRotation = Quaternion.identity;
 				faceGO.transform.localScale = Vector3.one;
 
@@ -202,7 +202,8 @@ namespace PrototUnity.AiTools {
 
 		private static Mesh BuildFaceMesh(List<Vector3> verts, Vector3 normal) {
 			var mesh = new Mesh { name = "VoronoiFace" };
-			mesh.SetVertices(verts);
+			var center = verts.Aggregate(Vector3.zero, (current, vec) => current + vec) / verts.Count;
+			mesh.SetVertices(verts.Select(it => it - center).ToList());
 
 			int triCount = Mathf.Max(0, verts.Count - 2);
 			var tris = new int[triCount * 3];
@@ -238,11 +239,12 @@ namespace PrototUnity.AiTools {
             
 				instances[i] = new CombineInstance {
 					mesh = meshFilter.sharedMesh,
+					transform = Matrix4x4.Translate(meshFilter.transform.localPosition),
 				};
 			}
 
 			var combinedMesh = new Mesh();
-			combinedMesh.CombineMeshes(instances, mergeSubMeshes:true, useMatrices:false);
+			combinedMesh.CombineMeshes(instances, mergeSubMeshes:true, useMatrices:true);
 			return combinedMesh;
 		}
 
