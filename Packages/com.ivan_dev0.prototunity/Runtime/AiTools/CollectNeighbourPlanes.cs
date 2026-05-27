@@ -21,9 +21,12 @@ namespace PrototUnity.AiTools {
 		}
 
 		public static List<GameObjectPairInfo> GatherNeighbors<TParentMarker>(
-			GameObject gameObject, float normalTolerance = defaultNormalTolerance, float planeTolerance = defaultPlaneTolerance
+			GameObject gameObject,
+			float normalTolerance = defaultNormalTolerance, 
+			float planeTolerance = defaultPlaneTolerance,
+			bool includeInactive = false
 		) where TParentMarker : Component {
-			var meshFilters = gameObject.GetComponentsInChildren<MeshFilter>(includeInactive: true);
+			var meshFilters = gameObject.GetComponentsInChildren<MeshFilter>(includeInactive: includeInactive);
 			var faces = CollectFaces(meshFilters);
 			var result = faces
 				.Where(it => it != null)
