@@ -118,13 +118,19 @@ namespace PrototUnity.AiTools {
 								space.x * 0.5f + x * space.x,
 								space.y * 0.5f + y * space.y,
 								space.z * 0.5f + z * space.z
-							);
+							) - cubeSize * 0.5f;
 
-							var randomnessPower = uniform ? 0 : Mathf.Max(0, cellCount.y - y - 1) * 0.1f; 
-							var point = -cubeSize * 0.5f + center + Random.insideUnitSphere * randomnessPower;
-							if (point.x < -cubeSize.x * 0.5f || point.x > cubeSize.x * 0.5f) continue;
-							if (point.y < -cubeSize.y * 0.5f || point.y > cubeSize.y * 0.5f) continue;
-							if (point.z < -cubeSize.z * 0.5f || point.z > cubeSize.z * 0.5f) continue;
+							var randomnessPower = uniform ? 0 : Mathf.Min(0.5f, Mathf.Max(0, cellCount.y - y - 1) * 0.1f);
+							var randomness = new Vector3(
+								Random.Range(-space.x, space.x),
+								Random.Range(-space.y, space.y),
+								Random.Range(-space.z, space.z)
+							) * randomnessPower;
+							var point = center + randomness;
+							
+							if (!IsPointInsideCube(point, Vector3.zero, cubeSize)) continue;
+							if (!IsPointInsideCube(point, center, space)) continue;
+							
 							seeds.Add(point);
 							break;
 						}
@@ -134,6 +140,14 @@ namespace PrototUnity.AiTools {
 			
 			return seeds;
 		}
+		
+		private static bool IsPointInsideCube(Vector3 point, Vector3 cubeCenter, Vector3 cubeSize) {
+			if (point.x < cubeCenter.x - cubeSize.x * 0.5f || point.x > cubeCenter.x + cubeSize.x * 0.5f) return false;
+			if (point.y < cubeCenter.y - cubeSize.y * 0.5f || point.y > cubeCenter.y + cubeSize.y * 0.5f) return false;
+			if (point.z < cubeCenter.z - cubeSize.z * 0.5f || point.z > cubeCenter.z + cubeSize.z * 0.5f) return false;
+			return true;
+		}
+		
 
 		private ConvexPolyhedron BuildCell(List<Vector3> seeds, int index) {
 			var poly = ConvexPolyhedron.CreateBox(cubeSize);
