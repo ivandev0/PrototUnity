@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace PrototUnity.AiTools {
@@ -89,14 +90,18 @@ namespace PrototUnity.AiTools {
 			var seeds = indexAndSeeds.Select(it => it.Item2).ToList();
 			var baseMat = faceMaterial != null ? faceMaterial : CreateDefaultMaterial();
 
-			for (var i = 0; i < seeds.Count; i++) {
-				var cell = BuildCell(seeds, i);
-				if (cell == null || cell.faces.Count == 0) continue;
-
-				Color tint = tintByCell
+			var cells = seeds.Select((_, index) => BuildCell(seeds, index)).ToList();
+			
+			for (var i = 0; i < cells.Count; i++) {
+				var cell = cells[i];
+				if (cell == null || cell.faces.Count == 0) return;
+				var tint = tintByCell
 					? Color.HSVToRGB(Random.value, 0.45f, 0.95f)
 					: Color.white;
-				CreateCellGameObject($"Cell_{indexAndSeeds[i].Item1.ToString()}", cell, baseMat, tint);
+				
+				var cellGO = CreateCellGameObject(cellPrefab, cell, cellShrink, baseMat, tint);
+				cellGO.transform.SetParent(parent, worldPositionStays: false);
+				cellGO.name = $"Cell_{indexAndSeeds[i].Item1.ToString()}";
 			}
 		}
 		
@@ -146,7 +151,6 @@ namespace PrototUnity.AiTools {
 			if (point.z < cubeCenter.z - cubeSize.z * 0.5f || point.z > cubeCenter.z + cubeSize.z * 0.5f) return false;
 			return true;
 		}
-		
 
 		private ConvexPolyhedron BuildCell(List<Vector3> seeds, int index) {
 			var poly = ConvexPolyhedron.CreateBox(cubeSize);
@@ -166,33 +170,27 @@ namespace PrototUnity.AiTools {
 			return poly;
 		}
 
-		private void CreateCellGameObject(string cellName, ConvexPolyhedron cell, Material baseMat, Color tint) {
-			Vector3 centroid = cell.ComputeCentroid();
+		private static GameObject CreateCellGameObject(
+			[CanBeNull] GameObject prefab, ConvexPolyhedron cell, float cellShrink, Material baseMat, Color tint
+		) {
+			var centroid = cell.ComputeCentroid();
 
 			GameObject cellGO;
-			if (cellPrefab == null) {
-				cellGO = new GameObject(cellName);
-				cellGO.transform.SetParent(parent, worldPositionStays: false);
-			} else { 
-				cellGO = GameObject.Instantiate(cellPrefab, parent, false); 
-				cellGO.name = cellName;
-			}
+			cellGO = prefab == null ? new GameObject() : GameObject.Instantiate(prefab);
 			cellGO.transform.localPosition = centroid;
 			cellGO.transform.localRotation = Quaternion.identity;
 			cellGO.transform.localScale = Vector3.one;
 
-			float keep = 1f - cellShrink;
+			var keep = 1f - cellShrink;
 
-			Material mat = baseMat;
-			if (tintByCell) {
-				mat = new Material(baseMat);
-				mat.color = tint;
-			}
+			var mat = new Material(baseMat) {
+				color = tint
+			};
 
-			for (int i = 0; i < cell.faces.Count; i++) {
-				ConvexPolyhedron.Face face = cell.faces[i];
+			for (var i = 0; i < cell.faces.Count; i++) {
+				var face = cell.faces[i];
 				var shrunk = new List<Vector3>(face.vertices.Count);
-				for (int v = 0; v < face.vertices.Count; v++) {
+				for (var v = 0; v < face.vertices.Count; v++) {
 					var shrunkVertex = Vector3.Lerp(centroid, face.vertices[v], keep);
 					shrunk.Add(shrunkVertex - centroid);
 				}
@@ -211,6 +209,7 @@ namespace PrototUnity.AiTools {
 
 			var meshCollider = cellGO.AddComponent<MeshCollider>();
 			meshCollider.sharedMesh = Combine(cellGO.GetComponentsInChildren<MeshFilter>());
+			return cellGO;
 		}
 
 		private static Mesh BuildFaceMesh(List<Vector3> verts, Vector3 normal) {
