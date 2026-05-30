@@ -7,7 +7,7 @@ namespace PrototUnity.AiTools {
 		[Header("Generation")] [SerializeField]
 		private int seed = 12345;
 
-		[SerializeField] private Vector3 cellCount = new Vector3Int(1, 1, 1);
+		[SerializeField] private Vector3Int cellCount = new Vector3Int(1, 1, 1);
 		[SerializeField] private Vector3 cubeSize = new Vector3(10f, 10f, 10f);
 
 		[Tooltip("If enabled, all cells are generated uniformly")] [SerializeField]
@@ -24,8 +24,6 @@ namespace PrototUnity.AiTools {
 
 		[Tooltip("If true, each face gets its own material instance tinted by the cell color.")] [SerializeField]
 		private bool tintByCell = true;
-
-		private const float EPSILON = 1e-5f;
 
 		[ContextMenu("Generate")]
 		public void Generate() {
@@ -46,7 +44,7 @@ namespace PrototUnity.AiTools {
 	public class Voronoi3DGenerator {
 		private readonly int seed;
 
-		private readonly Vector3 cellCount;
+		private readonly Vector3Int cellCount;
 		private readonly Vector3 cubeSize;
 
 		private readonly bool uniform;
@@ -64,7 +62,7 @@ namespace PrototUnity.AiTools {
 
 		public Voronoi3DGenerator(
 			int seed,
-			Vector3 cellCount,
+			Vector3Int cellCount,
 			Vector3 cubeSize,
 			bool uniform,
 			float cellShrink,
@@ -87,7 +85,8 @@ namespace PrototUnity.AiTools {
 		public void Generate() {
 			Random.InitState(seed);
 			
-			var seeds = PickSeeds();
+			var indexAndSeeds = PickSeeds();
+			var seeds = indexAndSeeds.Select(it => it.Item2).ToList();
 			var baseMat = faceMaterial != null ? faceMaterial : CreateDefaultMaterial();
 
 			for (var i = 0; i < seeds.Count; i++) {
@@ -97,13 +96,13 @@ namespace PrototUnity.AiTools {
 				Color tint = tintByCell
 					? Color.HSVToRGB(Random.value, 0.45f, 0.95f)
 					: Color.white;
-				CreateCellGameObject($"Cell_{i}", cell, baseMat, tint);
+				CreateCellGameObject($"Cell_{indexAndSeeds[i].Item1.ToString()}", cell, baseMat, tint);
 			}
 		}
 		
-		private List<Vector3> PickSeeds() {
+		private List<(Vector3Int, Vector3)> PickSeeds() {
 			var totalSeeds = cellCount.x * cellCount.y * cellCount.z;
-			var seeds = new List<Vector3>();
+			var seeds = new List<(Vector3Int, Vector3)>();
 			var maxAttempts = Mathf.Max(200, totalSeeds * 50);
 
 			var space = new Vector3(cubeSize.x / cellCount.x, cubeSize.y / cellCount.y, cubeSize.z / cellCount.z);
@@ -131,7 +130,7 @@ namespace PrototUnity.AiTools {
 							if (!IsPointInsideCube(point, Vector3.zero, cubeSize)) continue;
 							if (!IsPointInsideCube(point, center, space)) continue;
 							
-							seeds.Add(point);
+							seeds.Add((new Vector3Int(x, y - cellCount.y, z), point));
 							break;
 						}
 					}
