@@ -52,6 +52,16 @@ namespace PrototUnity.AiTools.Voronoi {
 		private readonly VoronoiMeshParameters meshParameters;
 
 		private const float EPSILON = 1e-5f;
+		
+		private struct CellIndex {
+			public readonly Vector3Int index;
+			public readonly Vector3 position;
+
+			public CellIndex(Vector3Int index, Vector3 position) {
+				this.index = index;
+				this.position = position;
+			}
+		}
 
 		public Voronoi3DGenerator(
 			VoronoiGeneratorParameters generatorParameters,
@@ -62,31 +72,39 @@ namespace PrototUnity.AiTools.Voronoi {
 		}
 		
 		public void Generate() {
+			var indexAndCell = GenerateCells(generatorParameters);
+			GenerateGameObjects(indexAndCell, meshParameters);
+		}
+
+		private static List<(CellIndex, ConvexPolyhedron)> GenerateCells(VoronoiGeneratorParameters generatorParameters) {
 			Random.InitState(generatorParameters.seed);
 			
 			var indexAndSeeds = PickSeeds(
 				generatorParameters.cellCount, generatorParameters.cubeSize, generatorParameters.uniform
 			);
-			var seeds = indexAndSeeds.Select(it => it.Item2).ToList();
+			var seeds = indexAndSeeds.Select(it => it.position).ToList();
 
-			var cells = seeds
-				.Select((_, index) => BuildCell(seeds, index, generatorParameters.cubeSize))
+			return indexAndSeeds
+				.Select((cellIndex, i) => (cellIndex, BuildCell(seeds, i, generatorParameters.cubeSize)))
 				.ToList();
-			
-			for (var i = 0; i < cells.Count; i++) {
-				var cell = cells[i];
+		}
+
+		private static void GenerateGameObjects(List<(CellIndex, ConvexPolyhedron)> indexAndCell, VoronoiMeshParameters meshParameters) {
+			for (var i = 0; i < indexAndCell.Count; i++) {
+				var index = indexAndCell[i].Item1;
+				var cell = indexAndCell[i].Item2;
 				if (cell == null || cell.faces.Count == 0) return;
 				
 				var cellGO = CreateCellGameObject(meshParameters, cell);
-				cellGO.name = $"Cell_{indexAndSeeds[i].Item1.ToString()}";
+				cellGO.name = $"Cell_{index.index.ToString()}";
 			}
 		}
-		
-		private static List<(Vector3Int, Vector3)> PickSeeds(
+
+		private static List<CellIndex> PickSeeds(
 			Vector3Int cellCount, Vector3 cubeSize, bool uniform
 		) {
 			var totalSeeds = cellCount.x * cellCount.y * cellCount.z;
-			var seeds = new List<(Vector3Int, Vector3)>();
+			var seeds = new List<CellIndex>();
 			var maxAttempts = Mathf.Max(200, totalSeeds * 50);
 
 			var space = new Vector3(cubeSize.x / cellCount.x, cubeSize.y / cellCount.y, cubeSize.z / cellCount.z);
@@ -114,7 +132,7 @@ namespace PrototUnity.AiTools.Voronoi {
 							if (!IsPointInsideCube(point, Vector3.zero, cubeSize)) continue;
 							if (!IsPointInsideCube(point, center, space)) continue;
 							
-							seeds.Add((new Vector3Int(x, y - cellCount.y, z), point));
+							seeds.Add(new CellIndex(new Vector3Int(x, y - cellCount.y, z), point));
 							break;
 						}
 					}
