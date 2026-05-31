@@ -18,62 +18,62 @@ namespace PrototUnity.AiTools.Voronoi {
 
 		public List<Face> faces = new List<Face>();
 
-		public static ConvexPolyhedron CreateBox(Vector3 size) {
+		public static ConvexPolyhedron CreateBox(Vector3 center, Vector3 size) {
 			var h = size * 0.5f;
 			var poly = new ConvexPolyhedron();
 
 			poly.faces.Add(new Face {
 				normal = new Vector3(-1f, 0f, 0f),
 				vertices = new List<Vector3> {
-					new(-h.x, -h.y, -h.z),
-					new(-h.x, -h.y, h.z),
-					new(-h.x, h.y, h.z),
-					new(-h.x, h.y, -h.z),
+					new Vector3(-h.x, -h.y, -h.z) + center,
+					new Vector3(-h.x, -h.y, h.z) + center,
+					new Vector3(-h.x, h.y, h.z) + center,
+					new Vector3(-h.x, h.y, -h.z) + center,
 				}
 			});
 			poly.faces.Add(new Face {
 				normal = new Vector3(1f, 0f, 0f),
 				vertices = new List<Vector3> {
-					new(h.x, -h.y, h.z),
-					new(h.x, -h.y, -h.z),
-					new(h.x, h.y, -h.z),
-					new(h.x, h.y, h.z),
+					new Vector3(h.x, -h.y, h.z) + center,
+					new Vector3(h.x, -h.y, -h.z) + center,
+					new Vector3(h.x, h.y, -h.z) + center,
+					new Vector3(h.x, h.y, h.z) + center,
 				}
 			});
 			poly.faces.Add(new Face {
 				normal = new Vector3(0f, -1f, 0f),
 				vertices = new List<Vector3> {
-					new(-h.x, -h.y, -h.z),
-					new(h.x, -h.y, -h.z),
-					new(h.x, -h.y, h.z),
-					new(-h.x, -h.y, h.z),
+					new Vector3(-h.x, -h.y, -h.z) + center,
+					new Vector3(h.x, -h.y, -h.z) + center,
+					new Vector3(h.x, -h.y, h.z) + center,
+					new Vector3(-h.x, -h.y, h.z) + center,
 				}
 			});
 			poly.faces.Add(new Face {
 				normal = new Vector3(0f, 1f, 0f),
 				vertices = new List<Vector3> {
-					new(-h.x, h.y, h.z),
-					new(h.x, h.y, h.z),
-					new(h.x, h.y, -h.z),
-					new(-h.x, h.y, -h.z),
+					new Vector3(-h.x, h.y, h.z) + center,
+					new Vector3(h.x, h.y, h.z) + center,
+					new Vector3(h.x, h.y, -h.z) + center,
+					new Vector3(-h.x, h.y, -h.z) + center,
 				}
 			});
 			poly.faces.Add(new Face {
 				normal = new Vector3(0f, 0f, -1f),
 				vertices = new List<Vector3> {
-					new(h.x, -h.y, -h.z),
-					new(-h.x, -h.y, -h.z),
-					new(-h.x, h.y, -h.z),
-					new(h.x, h.y, -h.z),
+					new Vector3(h.x, -h.y, -h.z) + center,
+					new Vector3(-h.x, -h.y, -h.z) + center,
+					new Vector3(-h.x, h.y, -h.z) + center,
+					new Vector3(h.x, h.y, -h.z) + center,
 				}
 			});
 			poly.faces.Add(new Face {
 				normal = new Vector3(0f, 0f, 1f),
 				vertices = new List<Vector3> {
-					new(-h.x, -h.y, h.z),
-					new(h.x, -h.y, h.z),
-					new(h.x, h.y, h.z),
-					new(-h.x, h.y, h.z),
+					new Vector3(-h.x, -h.y, h.z) + center,
+					new Vector3(h.x, -h.y, h.z) + center,
+					new Vector3(h.x, h.y, h.z) + center,
+					new Vector3(-h.x, h.y, h.z) + center,
 				}
 			});
 			return poly;

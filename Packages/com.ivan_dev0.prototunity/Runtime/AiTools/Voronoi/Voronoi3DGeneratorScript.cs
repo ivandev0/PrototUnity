@@ -34,7 +34,8 @@ namespace PrototUnity.AiTools.Voronoi {
 				cellPrefab,
 				tintByCell,
 				cellShrink,
-				transform
+				transform,
+				VoronoiMeshParameters.CellCenterPosition.MassCenter
 			);
 			new Voronoi3DGenerator(voronoiGeneratorParameters, voronoiMeshParameters)
 				.Generate();

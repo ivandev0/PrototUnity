@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace PrototUnity.AiTools.Voronoi {
 	public struct VoronoiGeneratorParameters {
@@ -26,24 +28,31 @@ namespace PrototUnity.AiTools.Voronoi {
 	}
 
 	public struct VoronoiMeshParameters {
+		public enum CellCenterPosition {
+			MassCenter, Index
+		}
+		
 		[CanBeNull] public readonly Material faceMaterial;
 		[CanBeNull] public readonly GameObject cellPrefab;
 		public readonly bool tintByCell;
 		public readonly float cellShrink;
 		[CanBeNull] public readonly Transform parent;
+		public readonly CellCenterPosition cellCenterPosition;
 
 		public VoronoiMeshParameters(
 			[CanBeNull] Material faceMaterial,
 			[CanBeNull] GameObject cellPrefab,
 			bool tintByCell,
 			float cellShrink,
-			[CanBeNull] Transform parent
+			[CanBeNull] Transform parent,
+			CellCenterPosition cellCenterPosition
 		) {
 			this.faceMaterial = faceMaterial;
 			this.cellPrefab = cellPrefab;
 			this.tintByCell = tintByCell;
 			this.cellShrink = cellShrink;
 			this.parent = parent;
+			this.cellCenterPosition = cellCenterPosition;
 		}
 	}
 	
@@ -95,7 +104,7 @@ namespace PrototUnity.AiTools.Voronoi {
 				var cell = indexAndCell[i].Item2;
 				if (cell == null || cell.faces.Count == 0) return;
 				
-				var cellGO = CreateCellGameObject(meshParameters, cell);
+				var cellGO = CreateCellGameObject(meshParameters, cell, index);
 				cellGO.name = $"Cell_{index.index.ToString()}";
 			}
 		}
@@ -119,20 +128,20 @@ namespace PrototUnity.AiTools.Voronoi {
 								space.x * 0.5f + x * space.x,
 								space.y * 0.5f + y * space.y,
 								space.z * 0.5f + z * space.z
-							) - cubeSize * 0.5f;
+							);
 
 							var randomnessPower = uniform ? 0 : Mathf.Min(0.5f, Mathf.Max(0, cellCount.y - y - 1) * 0.1f);
 							var randomness = new Vector3(
-								Random.Range(-space.x, space.x),
-								Random.Range(-space.y, space.y),
-								Random.Range(-space.z, space.z)
+								Random.Range(-space.x * 0.5f, space.x * 0.5f),
+								Random.Range(-space.y * 0.5f, space.y * 0.5f),
+								Random.Range(-space.z * 0.5f, space.z * 0.5f)
 							) * randomnessPower;
 							var point = center + randomness;
 							
-							if (!IsPointInsideCube(point, Vector3.zero, cubeSize)) continue;
+							if (!IsPointInsideCube(point, cubeSize * 0.5f, cubeSize)) continue;
 							if (!IsPointInsideCube(point, center, space)) continue;
 							
-							seeds.Add(new CellIndex(new Vector3Int(x, y - cellCount.y, z), point));
+							seeds.Add(new CellIndex(new Vector3Int(x, y, z), point));
 							break;
 						}
 					}
@@ -150,7 +159,7 @@ namespace PrototUnity.AiTools.Voronoi {
 		}
 
 		private static ConvexPolyhedron BuildCell(List<Vector3> seeds, int index, Vector3 cubeSize) {
-			var poly = ConvexPolyhedron.CreateBox(cubeSize);
+			var poly = ConvexPolyhedron.CreateBox(cubeSize * 0.5f, cubeSize);
 
 			for (var j = 0; j < seeds.Count; j++) {
 				if (j == index) continue;
@@ -168,9 +177,13 @@ namespace PrototUnity.AiTools.Voronoi {
 		}
 
 		private static GameObject CreateCellGameObject(
-			VoronoiMeshParameters parameters, ConvexPolyhedron cell
+			VoronoiMeshParameters parameters, ConvexPolyhedron cell, CellIndex index
 		) {
-			var centroid = cell.ComputeCentroid();
+			var centroid = parameters.cellCenterPosition switch {
+				VoronoiMeshParameters.CellCenterPosition.MassCenter => cell.ComputeCentroid(),
+				VoronoiMeshParameters.CellCenterPosition.Index => index.index,
+				_ => throw new ArgumentOutOfRangeException()
+			};
 
 			GameObject cellGO;
 			cellGO = parameters.cellPrefab == null ? new GameObject() : GameObject.Instantiate(parameters.cellPrefab);
