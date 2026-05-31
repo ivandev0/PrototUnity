@@ -94,10 +94,13 @@ namespace PrototUnity.AiTools.Voronoi {
 			var indexAndSeeds = PickSeeds(
 				generatorParameters.cellCount, generatorParameters.cubeSize, generatorParameters.uniform
 			);
-			var seeds = indexAndSeeds.Select(it => it.position).ToList();
-
+			
 			return indexAndSeeds
-				.Select((cellIndex, i) => (cellIndex, BuildCell(seeds, i, generatorParameters.cubeSize)))
+				.Select(seed => {
+					var neighbourIndex = GetNeighbourSeeds(generatorParameters.cellCount, seed.index);
+					var neighbourSeeds = indexAndSeeds.Where(it => neighbourIndex.Contains(it.index)).ToList();
+					return BuildCell(seed, neighbourSeeds, generatorParameters.cubeSize);
+				})
 				.ToList();
 		}
 
@@ -161,22 +164,44 @@ namespace PrototUnity.AiTools.Voronoi {
 			return true;
 		}
 
-		private static ConvexPolyhedron BuildCell(List<Vector3> seeds, int index, Vector3 cubeSize) {
-			var poly = ConvexPolyhedron.CreateBox(cubeSize * 0.5f, cubeSize);
-
-			for (var j = 0; j < seeds.Count; j++) {
-				if (j == index) continue;
-				var vectorBetweenCenters = seeds[j] - seeds[index];
-				var lenght = vectorBetweenCenters.magnitude;
-				if (lenght < EPSILON) continue;
-				
-				var middlePoint = (seeds[index] + seeds[j]) * 0.5f;
-				var clippingPlaneOffsetFromOrigin = Vector3.Dot(vectorBetweenCenters.normalized, middlePoint);
-				poly.ClipByPlane(vectorBetweenCenters.normalized, clippingPlaneOffsetFromOrigin);
-				if (poly.faces.Count == 0) return null;
+		private static List<Vector3Int> GetNeighbourSeeds(
+			Vector3Int cellCount,
+			Vector3Int index
+		) {
+			var result = new List<Vector3Int>();
+			for (var y = -1; y <= 1; y++) {
+				for (var x = -1; x <= 1; x++) {
+					for (var z = -1; z <= 1; z++) {
+						var offset = new Vector3Int(x, y, z);
+						if (offset == Vector3Int.zero) continue;
+						if (!IsPointInsideCube(index + offset, (Vector3) cellCount * 0.5f, cellCount)) continue;
+						result.Add(index + offset);
+					}
+				}
 			}
 
-			return poly;
+			return result;
+		}
+
+		private static (CellIndex, ConvexPolyhedron) BuildCell(
+			CellIndex seed,
+			IReadOnlyList<CellIndex> neighbourSeeds,
+			Vector3 cubeSize
+		) {
+			var poly = ConvexPolyhedron.CreateBox(cubeSize * 0.5f, cubeSize);
+
+			foreach (var neighbourSeed in neighbourSeeds) {
+				var vectorBetweenCenters = neighbourSeed.position - seed.position;
+				var length = vectorBetweenCenters.magnitude;
+				if (length < EPSILON) continue;
+				
+				var middlePoint = (seed.position + neighbourSeed.position) * 0.5f;
+				var clippingPlaneOffsetFromOrigin = Vector3.Dot(vectorBetweenCenters.normalized, middlePoint);
+				poly.ClipByPlane(vectorBetweenCenters.normalized, clippingPlaneOffsetFromOrigin);
+				if (poly.faces.Count == 0) return default;
+			}
+
+			return (seed, poly);
 		}
 
 		private static GameObject CreateCellGameObject(
