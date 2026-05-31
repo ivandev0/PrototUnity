@@ -38,6 +38,7 @@ namespace PrototUnity.AiTools.Voronoi {
 		public readonly float cellShrink;
 		[CanBeNull] public readonly Transform parent;
 		public readonly CellCenterPosition cellCenterPosition;
+		public readonly Vector3 cellCenterShift;
 
 		public VoronoiMeshParameters(
 			[CanBeNull] Material faceMaterial,
@@ -45,7 +46,8 @@ namespace PrototUnity.AiTools.Voronoi {
 			bool tintByCell,
 			float cellShrink,
 			[CanBeNull] Transform parent,
-			CellCenterPosition cellCenterPosition
+			CellCenterPosition cellCenterPosition, 
+			Vector3 cellCenterShift
 		) {
 			this.faceMaterial = faceMaterial;
 			this.cellPrefab = cellPrefab;
@@ -53,6 +55,7 @@ namespace PrototUnity.AiTools.Voronoi {
 			this.cellShrink = cellShrink;
 			this.parent = parent;
 			this.cellCenterPosition = cellCenterPosition;
+			this.cellCenterShift = cellCenterShift;
 		}
 	}
 	
@@ -183,7 +186,7 @@ namespace PrototUnity.AiTools.Voronoi {
 				VoronoiMeshParameters.CellCenterPosition.MassCenter => cell.ComputeCentroid(),
 				VoronoiMeshParameters.CellCenterPosition.Index => index.index,
 				_ => throw new ArgumentOutOfRangeException()
-			};
+			} + parameters.cellCenterShift;
 
 			GameObject cellGO;
 			cellGO = parameters.cellPrefab == null ? new GameObject() : GameObject.Instantiate(parameters.cellPrefab);
