@@ -25,7 +25,18 @@ namespace PrototUnity.AiTools.Voronoi {
 
 		[ContextMenu("Generate")]
 		public void Generate() {
-			new Voronoi3DGenerator(seed, cellCount, cubeSize, uniform, cellShrink, faceMaterial, cellPrefab, tintByCell, transform)
+			var voronoiGeneratorParameters = new VoronoiGeneratorParameters(
+				seed, cellCount, cubeSize, uniform
+			);
+			
+			var voronoiMeshParameters = new VoronoiMeshParameters(
+				faceMaterial,
+				cellPrefab,
+				tintByCell,
+				cellShrink,
+				transform
+			);
+			new Voronoi3DGenerator(voronoiGeneratorParameters, voronoiMeshParameters)
 				.Generate();
 		}
 
