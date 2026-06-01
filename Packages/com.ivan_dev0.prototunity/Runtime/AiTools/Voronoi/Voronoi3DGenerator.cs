@@ -230,22 +230,22 @@ namespace PrototUnity.AiTools.Voronoi {
 
 			for (var i = 0; i < cell.faces.Count; i++) {
 				var face = cell.faces[i];
-				var shrunk = new List<Vector3>(face.vertices.Count);
-				for (var v = 0; v < face.vertices.Count; v++) {
-					var shrunkVertex = Vector3.Lerp(centroid, face.vertices[v], keep);
-					shrunk.Add(shrunkVertex - centroid);
+				var vertices = face.vertices;
+				for (var v = 0; v < vertices.Count; v++) {
+					var shrunkVertex = Vector3.Lerp(centroid, vertices[v], keep);
+					vertices[v] = shrunkVertex - centroid;
 				}
 
 				var faceGO = new GameObject($"Face_{i}");
 				faceGO.transform.SetParent(cellGO.transform, worldPositionStays: false);
-				faceGO.transform.localPosition = shrunk.Aggregate(Vector3.zero, (current, vec) => current + vec) / shrunk.Count;
+				faceGO.transform.localPosition = vertices.Aggregate(Vector3.zero, (current, vec) => current + vec) / vertices.Count;
 				faceGO.transform.localRotation = Quaternion.identity;
 				faceGO.transform.localScale = Vector3.one;
 
 				var mf = faceGO.AddComponent<MeshFilter>();
 				var mr = faceGO.AddComponent<MeshRenderer>();
 				mr.sharedMaterial = baseMat;
-				mf.sharedMesh = BuildFaceMesh(shrunk, face.normal);
+				mf.sharedMesh = BuildFaceMesh(vertices, face.normal);
 			}
 
 			var meshCollider = cellGO.AddComponent<MeshCollider>();
