@@ -245,7 +245,7 @@ namespace PrototUnity.AiTools.Voronoi {
 				var mf = faceGO.AddComponent<MeshFilter>();
 				var mr = faceGO.AddComponent<MeshRenderer>();
 				mr.sharedMaterial = baseMat;
-				mf.sharedMesh = BuildFaceMesh(vertices, face.normal);
+				mf.sharedMesh = BuildFaceMesh(face);
 			}
 
 			var meshCollider = cellGO.AddComponent<MeshCollider>();
@@ -253,23 +253,24 @@ namespace PrototUnity.AiTools.Voronoi {
 			return cellGO;
 		}
 
-		private static Mesh BuildFaceMesh(List<Vector3> verts, Vector3 normal) {
+		private static Mesh BuildFaceMesh(ConvexPolyhedron.Face face) {
 			var mesh = new Mesh { name = "VoronoiFace" };
-			var center = verts.Aggregate(Vector3.zero, (current, vec) => current + vec) / verts.Count;
-			mesh.SetVertices(verts.Select(it => it - center).ToList());
+			var vertices = face.vertices;
+			
+			var center = vertices.Aggregate(Vector3.zero, (current, vec) => current + vec) / vertices.Count;
+			mesh.SetVertices(vertices.Select(it => it - center).ToList());
 
-			int triCount = Mathf.Max(0, verts.Count - 2);
+			var triCount = Mathf.Max(0, vertices.Count - 2);
 			var tris = new int[triCount * 3];
-			for (int i = 0; i < triCount; i++) {
+			for (var i = 0; i < triCount; i++) {
 				tris[i * 3 + 0] = 0;
 				tris[i * 3 + 1] = i + 1;
 				tris[i * 3 + 2] = i + 2;
 			}
-
 			mesh.SetTriangles(tris, 0);
 
-			var normals = new Vector3[verts.Count];
-			for (int i = 0; i < normals.Length; i++) normals[i] = normal;
+			var normals = new Vector3[vertices.Count];
+			for (var i = 0; i < normals.Length; i++) normals[i] = face.normal;
 			mesh.SetNormals(normals);
 
 			mesh.RecalculateBounds();
