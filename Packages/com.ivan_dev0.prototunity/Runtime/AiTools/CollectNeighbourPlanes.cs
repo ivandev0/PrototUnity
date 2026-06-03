@@ -28,85 +28,150 @@ namespace PrototUnity.AiTools {
 		) where TParentMarker : Component {
 			var meshFilters = gameObject.GetComponentsInChildren<MeshFilter>(includeInactive: includeInactive);
 			var faces = CollectFaces(meshFilters);
-			var result = Group<TParentMarker>(faces);
-			FillIn(result, normalTolerance, planeTolerance);
-			return result;
+			var facePairs = GatherPairs(faces, normalTolerance, planeTolerance);
+			return Group<TParentMarker>(facePairs);
 		}
 
 		[ItemCanBeNull]
-		private static List<FaceInfo> CollectFaces(MeshFilter[] meshFilters) {
-			var result = new List<FaceInfo>();
-			foreach (var mf in meshFilters) {
+		private static FaceInfo[] CollectFaces(MeshFilter[] meshFilters) {
+			var result = new FaceInfo[meshFilters.Length];
+			for (var index = 0; index < meshFilters.Length; index++) {
+				var mf = meshFilters[index];
 				var mesh = mf.sharedMesh;
 				if (mesh == null || mesh.vertexCount < 3) {
-					result.Add(null);
+					result[index] = null;
 					continue;
 				}
-				
+
 				var vertices = mesh.vertices;
 				var normals = mesh.normals;
 				var localNormal = normals is { Length: > 0 }
 					? normals[0]
 					: ComputeNormal(vertices);
 				if (localNormal.sqrMagnitude < 1e-10f) {
-					result.Add(null);
+					result[index] = null;
 					continue;
 				}
 
 				// TODO would be nice to check that all vertices are lying on a single plane
 				var worldNormal = mf.transform.TransformDirection(localNormal).normalized;
-				var verticesWorld = vertices.Select(it => mf.transform.TransformPoint(it)).ToArray();
-				var center = Average(verticesWorld);
+				var center = vertices.Aggregate(Vector3.zero, (current, t) => current + mf.transform.TransformPoint(t));
+				center /= vertices.Length;
 
-				result.Add(new FaceInfo {
+				result[index] = new FaceInfo {
 					target = mf.gameObject,
 					normal = worldNormal,
 					center = center,
-				});
+				};
 			}
 
 			return result;
 		}
 		
-		private static List<GameObjectPairInfo> Group<TParentMarker>(List<FaceInfo> faces) where TParentMarker : Component {
-			return faces
-				.Where(it => it != null)
-				.GroupBy(it => it.target.GetComponentInParent<TParentMarker>())
-				.Select(group => new GameObjectPairInfo() {
-					owner = group.Key.gameObject,
-					meshes = group.ToList(),
-					pairs = new List<FaceInfo>(new FaceInfo[group.Count()])
-				}).ToList();
-		}
-		
-		private static void FillIn(List<GameObjectPairInfo> result, float normalTolerance, float planeTolerance) {
-			for (var i = 0; i < result.Count; i++) {
-				for (var thisFaceIndex = 0; thisFaceIndex < result[i].meshes.Count; thisFaceIndex++) {
-					var thisFace = result[i].meshes[thisFaceIndex];
-					for (var j = i + 1; j < result.Count; j++) {
-						for (var otherFaceIndex = 0; otherFaceIndex < result[j].meshes.Count; otherFaceIndex++) {
-							var otherFace = result[j].meshes[otherFaceIndex];
+		private static Dictionary<FaceInfo, FaceInfo> GatherPairs(
+			[ItemCanBeNull] FaceInfo[] faces,
+			float normalTolerance,
+			float planeTolerance
+		) {
+			var normalToleranceSqr = normalTolerance * normalTolerance;
+			var planeToleranceSqr = planeTolerance * planeTolerance;
+			var bucketSize = Mathf.Max(planeTolerance, 0.0001f);
+			var buckets = BuildCenterBuckets(faces, bucketSize);
+			var pairLookup = new Dictionary<FaceInfo, FaceInfo>();
+			
+			for (var faceIndex = 0; faceIndex < faces.Length; faceIndex++) {
+				var thisFace = faces[faceIndex];
+				if (thisFace == null) continue;
+				
+				var bucket = GetBucketKey(thisFace.center, bucketSize);
+				var candidates = new List<FaceInfo>();
+				for (var x = -1; x <= 1; x++) {
+					for (var y = -1; y <= 1; y++) {
+						for (var z = -1; z <= 1; z++) {
+							var key = new Vector3Int(bucket.x + x, bucket.y + y, bucket.z + z);
+							if (!buckets.TryGetValue(key, out var bucketFaces)) continue;
 							
-							if ((thisFace.normal + otherFace.normal).sqrMagnitude > normalTolerance * normalTolerance) continue;
-							if ((thisFace.center - otherFace.center).sqrMagnitude > planeTolerance * planeTolerance) continue;
-							
-							result[i].pairs[thisFaceIndex] = otherFace;
-							result[j].pairs[otherFaceIndex] = thisFace;
+							foreach (var candidate in bucketFaces) {
+								if (candidate == thisFace) continue;
+								candidates.Add(candidate);
+							}
 						}
 					}
 				}
+				
+				pairLookup[thisFace] = null;
+				foreach (var otherFace in candidates) {
+					if ((thisFace.normal + otherFace.normal).sqrMagnitude > normalToleranceSqr) continue;
+					if ((thisFace.center - otherFace.center).sqrMagnitude > planeToleranceSqr) continue;
+					
+					pairLookup[thisFace] = otherFace;
+					break;
+				}
 			}
+			
+			return pairLookup;
+		}
+		
+		private static List<GameObjectPairInfo> Group<TParentMarker>(
+			Dictionary<FaceInfo, FaceInfo> facePairs
+		) where TParentMarker : Component {
+			var result = new List<GameObjectPairInfo>();
+			var ownerIndexes = new Dictionary<TParentMarker, int>();
+			foreach (var (face, pair) in facePairs) {
+				var owner = face.target.GetComponentInParent<TParentMarker>();
+				if (owner == null) {
+					throw new MissingComponentException($"{face.target.name} is missing a parent {typeof(TParentMarker).Name} component.");
+				}
+				
+				if (!ownerIndexes.TryGetValue(owner, out var index)) {
+					index = result.Count;
+					ownerIndexes.Add(owner, index);
+					result.Add(new GameObjectPairInfo {
+						owner = owner.gameObject,
+						meshes = new List<FaceInfo>(),
+						pairs = new List<FaceInfo>()
+					});
+				}
+				
+				var info = result[index];
+				info.meshes.Add(face);
+				info.pairs.Add(pair);
+			}
+			
+			return result;
+		}
+		
+		private static Dictionary<Vector3Int, List<FaceInfo>> BuildCenterBuckets(
+			[ItemCanBeNull] FaceInfo[] faces,
+			float bucketSize
+		) {
+			var buckets = new Dictionary<Vector3Int, List<FaceInfo>>();
+			foreach (var face in faces) {
+				if (face == null) continue;
+				
+				var key = GetBucketKey(face.center, bucketSize);
+				if (!buckets.TryGetValue(key, out var bucketFaces)) {
+					bucketFaces = new List<FaceInfo>();
+					buckets.Add(key, bucketFaces);
+				}
+				
+				bucketFaces.Add(face);
+			}
+			
+			return buckets;
+		}
+		
+		private static Vector3Int GetBucketKey(Vector3 point, float bucketSize) {
+			return new Vector3Int(
+				Mathf.FloorToInt(point.x / bucketSize),
+				Mathf.FloorToInt(point.y / bucketSize),
+				Mathf.FloorToInt(point.z / bucketSize)
+			);
 		}
 
 		private static Vector3 ComputeNormal(Vector3[] verts) {
 			if (verts.Length < 3) return Vector3.zero;
 			return Vector3.Cross(verts[1] - verts[0], verts[2] - verts[0]).normalized;
-		}
-		
-		private static Vector3 Average(Vector3[] points) {
-			if (points.Length == 0) return Vector3.zero;
-			var sum = points.Aggregate(Vector3.zero, (current, t) => current + t);
-			return sum / points.Length;
 		}
 	}
 }
