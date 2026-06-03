@@ -28,34 +28,8 @@ namespace PrototUnity.AiTools {
 		) where TParentMarker : Component {
 			var meshFilters = gameObject.GetComponentsInChildren<MeshFilter>(includeInactive: includeInactive);
 			var faces = CollectFaces(meshFilters);
-			var result = faces
-				.Where(it => it != null)
-				.GroupBy(it => it.target.GetComponentInParent<TParentMarker>()).Select(group => new GameObjectPairInfo() {
-					owner = group.Key.gameObject,
-					meshes = group.ToList(),
-					pairs = new List<FaceInfo>(new FaceInfo[group.Count()])
-				}).ToList();
-			var pairs = 0;
-			
-			for (var i = 0; i < result.Count; i++) {
-				for (var thisFaceIndex = 0; thisFaceIndex < result[i].meshes.Count; thisFaceIndex++) {
-					var thisFace = result[i].meshes[thisFaceIndex];
-					for (var j = i + 1; j < result.Count; j++) {
-						for (var otherFaceIndex = 0; otherFaceIndex < result[j].meshes.Count; otherFaceIndex++) {
-							var otherFace = result[j].meshes[otherFaceIndex];
-							
-							if ((thisFace.normal + otherFace.normal).sqrMagnitude > normalTolerance * normalTolerance) continue;
-							if ((thisFace.center - otherFace.center).sqrMagnitude > planeTolerance * planeTolerance) continue;
-							
-							result[i].pairs[thisFaceIndex] = otherFace;
-							result[j].pairs[otherFaceIndex] = thisFace;
-							pairs++;
-						}
-					}
-				}
-			}
-
-			Debug.Log($"Collect {pairs} neighbor face pair(s) ({pairs * 2} faces).");
+			var result = Group<TParentMarker>(faces);
+			FillIn(result, normalTolerance, planeTolerance);
 			return result;
 		}
 
@@ -92,6 +66,36 @@ namespace PrototUnity.AiTools {
 			}
 
 			return result;
+		}
+		
+		private static List<GameObjectPairInfo> Group<TParentMarker>(List<FaceInfo> faces) where TParentMarker : Component {
+			return faces
+				.Where(it => it != null)
+				.GroupBy(it => it.target.GetComponentInParent<TParentMarker>())
+				.Select(group => new GameObjectPairInfo() {
+					owner = group.Key.gameObject,
+					meshes = group.ToList(),
+					pairs = new List<FaceInfo>(new FaceInfo[group.Count()])
+				}).ToList();
+		}
+		
+		private static void FillIn(List<GameObjectPairInfo> result, float normalTolerance, float planeTolerance) {
+			for (var i = 0; i < result.Count; i++) {
+				for (var thisFaceIndex = 0; thisFaceIndex < result[i].meshes.Count; thisFaceIndex++) {
+					var thisFace = result[i].meshes[thisFaceIndex];
+					for (var j = i + 1; j < result.Count; j++) {
+						for (var otherFaceIndex = 0; otherFaceIndex < result[j].meshes.Count; otherFaceIndex++) {
+							var otherFace = result[j].meshes[otherFaceIndex];
+							
+							if ((thisFace.normal + otherFace.normal).sqrMagnitude > normalTolerance * normalTolerance) continue;
+							if ((thisFace.center - otherFace.center).sqrMagnitude > planeTolerance * planeTolerance) continue;
+							
+							result[i].pairs[thisFaceIndex] = otherFace;
+							result[j].pairs[otherFaceIndex] = thisFace;
+						}
+					}
+				}
+			}
 		}
 
 		private static Vector3 ComputeNormal(Vector3[] verts) {
