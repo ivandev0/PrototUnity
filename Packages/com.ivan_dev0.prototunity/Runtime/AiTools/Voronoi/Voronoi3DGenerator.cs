@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Unity.Collections;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -84,17 +85,21 @@ namespace PrototUnity.AiTools.Voronoi {
 		}
 		
 		public void Generate() {
-			var indexAndCell = GenerateCells(generatorParameters);
-			GenerateGameObjects(indexAndCell, meshParameters);
-		}
-
-		private static List<(CellIndex, ConvexPolyhedron)> GenerateCells(VoronoiGeneratorParameters generatorParameters) {
 			Random.InitState(generatorParameters.seed);
 			
 			var indexAndSeeds = PickSeeds(
 				generatorParameters.cellCount, generatorParameters.cubeSize, generatorParameters.uniform
 			);
-			
+			var indexAndCell = GenerateCells(indexAndSeeds, generatorParameters);
+			GenerateGameObjects(indexAndCell, meshParameters);
+
+			indexAndSeeds.Dispose();
+		}
+
+		private static List<(CellIndex, ConvexPolyhedron)> GenerateCells(
+			NativeArray<CellIndex> indexAndSeeds,
+			VoronoiGeneratorParameters generatorParameters
+		) {
 			return indexAndSeeds
 				.Select(seed => {
 					var neighbourIndex = GetNeighbourSeeds(generatorParameters.cellCount, seed.index);
@@ -115,11 +120,11 @@ namespace PrototUnity.AiTools.Voronoi {
 			}
 		}
 
-		private static List<CellIndex> PickSeeds(
+		private static NativeArray<CellIndex> PickSeeds(
 			Vector3Int cellCount, Vector3 cubeSize, bool uniform
 		) {
 			var totalSeeds = cellCount.x * cellCount.y * cellCount.z;
-			var seeds = new List<CellIndex>();
+			var seeds = new NativeArray<CellIndex>(totalSeeds, Allocator.Persistent);
 			var maxAttempts = Mathf.Max(200, totalSeeds * 50);
 
 			var space = new Vector3(cubeSize.x / cellCount.x, cubeSize.y / cellCount.y, cubeSize.z / cellCount.z);
@@ -127,7 +132,7 @@ namespace PrototUnity.AiTools.Voronoi {
 				for (var x = 0; x < cellCount.x; x++) {
 					for (var z = 0; z < cellCount.z; z++) { 
 						var attempts = 0;
-						while (seeds.Count < totalSeeds && attempts < maxAttempts) {
+						while (attempts < maxAttempts) {
 							attempts++;
 
 							var center = new Vector3(
@@ -147,7 +152,8 @@ namespace PrototUnity.AiTools.Voronoi {
 							if (!IsPointInsideCube(point, cubeSize * 0.5f, cubeSize)) continue;
 							if (!IsPointInsideCube(point, center, space)) continue;
 							
-							seeds.Add(new CellIndex(new Vector3Int(x, y, z), point));
+							var seedIndex = z + x * cellCount.z + y * cellCount.x * cellCount.z;
+							seeds[seedIndex] = new CellIndex(new Vector3Int(x, y, z), point);
 							break;
 						}
 					}
