@@ -21,6 +21,10 @@ namespace PrototUnity.Progress {
 			public bool IsFirstHit(Progressable progress) {
 				return delta < 0 && -delta + progress.Current >= progress.Total;
 			}
+			
+			public bool IsRestoredToFull(Progressable progress) {
+				return delta > 0 && delta + progress.Current >= progress.Total;
+			}
 		}
 	
 		private void Awake() {
