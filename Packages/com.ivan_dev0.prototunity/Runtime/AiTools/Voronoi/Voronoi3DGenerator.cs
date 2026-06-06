@@ -114,7 +114,7 @@ namespace PrototUnity.AiTools.Voronoi {
 			Random.InitState(generatorParameters.seed);
 			
 			var generatedCells = GenerateCells(
-				PickSeeds(generatorParameters.cellCount, generatorParameters.cubeSize, generatorParameters.uniform),
+				PickSeeds(generatorParameters),
 				generatorParameters
 			);
 			try {
@@ -194,8 +194,11 @@ namespace PrototUnity.AiTools.Voronoi {
 		}
 
 		private static NativeArray<CellIndex> PickSeeds(
-			Vector3Int cellCount, Vector3 cubeSize, bool uniform
+			VoronoiGeneratorParameters generatorParameters
 		) {
+			Vector3Int cellCount = generatorParameters.cellCount;
+			Vector3 cubeSize = generatorParameters.cubeSize;
+			bool uniform = generatorParameters.uniform;
 			var totalSeeds = cellCount.x * cellCount.y * cellCount.z;
 			var seeds = new NativeArray<CellIndex>(totalSeeds, Allocator.Persistent);
 			var maxAttempts = Mathf.Max(200, totalSeeds * 50);
