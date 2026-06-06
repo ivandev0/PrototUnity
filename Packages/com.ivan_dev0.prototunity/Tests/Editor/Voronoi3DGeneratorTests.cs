@@ -1,7 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using PrototUnity.AiTools.Voronoi;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace PrototUnity.Editor.Tests.Editor {
 	public class Voronoi3DGeneratorTests {
@@ -27,6 +31,15 @@ namespace PrototUnity.Editor.Tests.Editor {
 			}
 		}
 
+		[Test]
+		public void ConvexPolyhedronJobResultTypes_DoNotContainNativeContainers() {
+			var polyhedronType = Type.GetType("PrototUnity.AiTools.Voronoi.ConvexPolyhedron, PrototUnity", throwOnError: true);
+			var faceType = Type.GetType("PrototUnity.AiTools.Voronoi.ConvexFace, PrototUnity", throwOnError: true);
+
+			AssertNoNativeContainerFields(polyhedronType);
+			AssertNoNativeContainerFields(faceType);
+		}
+
 		private static Voronoi3DGenerator CreateGenerator(Vector3Int cellCount, Transform parent) {
 			return new Voronoi3DGenerator(
 				new VoronoiGeneratorParameters(
@@ -44,6 +57,20 @@ namespace PrototUnity.Editor.Tests.Editor {
 					cellCenterPosition: VoronoiMeshParameters.CellCenterPosition.Index,
 					cellCenterShift: Vector3.zero
 				)
+			);
+		}
+
+		private static void AssertNoNativeContainerFields(Type type) {
+			var nativeContainerFields = type
+				.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+				.Where(field => field.FieldType.FullName?.StartsWith("Unity.Collections.Native") == true)
+				.Select(field => $"{field.FieldType.Name} {field.Name}")
+				.ToArray();
+
+			Assert.That(
+				nativeContainerFields,
+				Is.Empty,
+				$"{type.FullName} should only contain range/value fields so it can be stored in job containers."
 			);
 		}
 	}
