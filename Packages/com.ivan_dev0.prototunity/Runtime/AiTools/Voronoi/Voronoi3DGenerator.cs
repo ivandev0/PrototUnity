@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -92,21 +93,25 @@ namespace PrototUnity.AiTools.Voronoi {
 			);
 			var indexAndCell = GenerateCells(indexAndSeeds, generatorParameters);
 			GenerateGameObjects(indexAndCell, meshParameters);
-
-			indexAndSeeds.Dispose();
 		}
 
 		private static List<(CellIndex, ConvexPolyhedron)> GenerateCells(
 			NativeArray<CellIndex> indexAndSeeds,
 			VoronoiGeneratorParameters generatorParameters
 		) {
-			return indexAndSeeds
-				.Select(seed => {
-					var neighbourIndex = GetNeighbourSeeds(generatorParameters.cellCount, seed.index);
-					var neighbourSeeds = indexAndSeeds.Where(it => neighbourIndex.Contains(it.index)).ToList();
-					return BuildCell(seed, neighbourSeeds, generatorParameters.cubeSize);
-				})
-				.ToList();
+			var job = new VoronoiJob(
+				indexAndSeeds,
+				generatorParameters
+			);
+			
+			JobHandle jobHandle = default;
+			jobHandle = job.ScheduleByRef(job.result.Length, 1, jobHandle);
+			jobHandle.Complete();
+
+			var output = job.indexAndSeeds.Zip(job.result, (index, polyhedron) => (index, polyhedron)).ToList();
+			job.indexAndSeeds.Dispose();
+			job.result.Dispose();
+			return output;
 		}
 
 		private static void GenerateGameObjects(List<(CellIndex, ConvexPolyhedron)> indexAndCell, VoronoiMeshParameters meshParameters) {
@@ -168,46 +173,6 @@ namespace PrototUnity.AiTools.Voronoi {
 			if (point.y < cubeCenter.y - cubeSize.y * 0.5f || point.y > cubeCenter.y + cubeSize.y * 0.5f) return false;
 			if (point.z < cubeCenter.z - cubeSize.z * 0.5f || point.z > cubeCenter.z + cubeSize.z * 0.5f) return false;
 			return true;
-		}
-
-		private static List<Vector3Int> GetNeighbourSeeds(
-			Vector3Int cellCount,
-			Vector3Int index
-		) {
-			var result = new List<Vector3Int>();
-			for (var y = -1; y <= 1; y++) {
-				for (var x = -1; x <= 1; x++) {
-					for (var z = -1; z <= 1; z++) {
-						var offset = new Vector3Int(x, y, z);
-						if (offset == Vector3Int.zero) continue;
-						if (!IsPointInsideCube(index + offset, (Vector3) cellCount * 0.5f, cellCount)) continue;
-						result.Add(index + offset);
-					}
-				}
-			}
-
-			return result;
-		}
-
-		private static (CellIndex, ConvexPolyhedron) BuildCell(
-			CellIndex seed,
-			IReadOnlyList<CellIndex> neighbourSeeds,
-			Vector3 cubeSize
-		) {
-			var poly = ConvexPolyhedron.CreateBox(cubeSize * 0.5f, cubeSize);
-
-			foreach (var neighbourSeed in neighbourSeeds) {
-				var vectorBetweenCenters = neighbourSeed.position - seed.position;
-				var length = vectorBetweenCenters.magnitude;
-				if (length < EPSILON) continue;
-				
-				var middlePoint = (seed.position + neighbourSeed.position) * 0.5f;
-				var clippingPlaneOffsetFromOrigin = Vector3.Dot(vectorBetweenCenters.normalized, middlePoint);
-				poly.ClipByPlane(vectorBetweenCenters.normalized, clippingPlaneOffsetFromOrigin);
-				if (poly.faces.Count == 0) return default;
-			}
-
-			return (seed, poly);
 		}
 
 		private static GameObject CreateCellGameObject(
@@ -306,6 +271,69 @@ namespace PrototUnity.AiTools.Voronoi {
 			var combinedMesh = new Mesh();
 			combinedMesh.CombineMeshes(instances, mergeSubMeshes:true, useMatrices:true);
 			return combinedMesh;
+		}
+		
+		private struct VoronoiJob : IJobParallelFor {
+			[WriteOnly] public NativeArray<ConvexPolyhedron> result;
+			[ReadOnly] public NativeArray<CellIndex> indexAndSeeds;
+			private readonly VoronoiGeneratorParameters parameters;
+
+			public VoronoiJob(
+				NativeArray<CellIndex> indexAndSeeds,
+				VoronoiGeneratorParameters parameters
+			) {
+				this.parameters = parameters;
+				this.indexAndSeeds = indexAndSeeds;
+
+				result = new NativeArray<ConvexPolyhedron>(indexAndSeeds.Length, Allocator.Persistent);
+			}
+
+			public void Execute(int index) {
+				var seed = indexAndSeeds[index];
+				var neighbourIndex = GetNeighbourSeeds(parameters.cellCount, seed.index);
+				var neighbourSeeds = indexAndSeeds.Where(it => neighbourIndex.Contains(it.index)).ToList();
+				result[index] = BuildCell(seed, neighbourSeeds, parameters.cubeSize);
+			}
+			
+			private static List<Vector3Int> GetNeighbourSeeds(
+				Vector3Int cellCount,
+				Vector3Int index
+			) {
+				var result = new List<Vector3Int>();
+				for (var y = -1; y <= 1; y++) {
+					for (var x = -1; x <= 1; x++) {
+						for (var z = -1; z <= 1; z++) {
+							var offset = new Vector3Int(x, y, z);
+							if (offset == Vector3Int.zero) continue;
+							if (!IsPointInsideCube(index + offset, (Vector3) cellCount * 0.5f, cellCount)) continue;
+							result.Add(index + offset);
+						}
+					}
+				}
+
+				return result;
+			}
+			
+			private static ConvexPolyhedron BuildCell(
+				CellIndex seed,
+				IReadOnlyList<CellIndex> neighbourSeeds,
+				Vector3 cubeSize
+			) {
+				var poly = ConvexPolyhedron.CreateBox(cubeSize * 0.5f, cubeSize);
+
+				foreach (var neighbourSeed in neighbourSeeds) {
+					var vectorBetweenCenters = neighbourSeed.position - seed.position;
+					var length = vectorBetweenCenters.magnitude;
+					if (length < EPSILON) continue;
+				
+					var middlePoint = (seed.position + neighbourSeed.position) * 0.5f;
+					var clippingPlaneOffsetFromOrigin = Vector3.Dot(vectorBetweenCenters.normalized, middlePoint);
+					poly.ClipByPlane(vectorBetweenCenters.normalized, clippingPlaneOffsetFromOrigin);
+					if (poly.faces.Count == 0) return default;
+				}
+
+				return poly;
+			}
 		}
 	}
 }
