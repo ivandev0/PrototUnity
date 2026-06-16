@@ -1,0 +1,32 @@
+#pragma kernel CSMain
+
+RWStructuredBuffer<float4> points;
+uint numPointsPerAxis;
+float boundsSize;
+float3 center;
+float3 offset;
+float spacing;
+
+float radius;
+
+static const int numThreads = 8;
+
+int indexFromCoord(uint x, uint y, uint z)
+{
+    return z * numPointsPerAxis * numPointsPerAxis + y * numPointsPerAxis + x;
+}
+
+[numthreads(numThreads, numThreads, numThreads)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+    {
+        return;
+    }
+
+    float3 pos = center + id * spacing - boundsSize / 2;
+    float density = radius - length(pos + offset);
+
+    int index = indexFromCoord(id.x, id.y, id.z);
+    points[index] = float4(pos, density);
+}
