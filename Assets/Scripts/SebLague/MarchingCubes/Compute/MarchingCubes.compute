@@ -74,9 +74,9 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         float4 pointC2 = cubeCorners[cornerIndexBFromEdge[triangleIndices[i + 2]]];
 
         Triangle tri;
-        tri.vertexA = interpolateVerts(pointA1, pointA2);
+        tri.vertexC = interpolateVerts(pointA1, pointA2);
         tri.vertexB = interpolateVerts(pointB1, pointB2);
-        tri.vertexC = interpolateVerts(pointC1, pointC2);
+        tri.vertexA = interpolateVerts(pointC1, pointC2);
         triangles.Append(tri);
     }
 }
