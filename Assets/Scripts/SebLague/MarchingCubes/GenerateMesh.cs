@@ -141,6 +141,13 @@ namespace SebLague.MarchingCubes {
 
 			mesh.RecalculateNormals();
 			GetComponent<MeshFilter>().mesh = mesh;
+			
+			AddCollider();
+		}
+
+		private void AddCollider() {
+			var meshCollider = gameObject.AddComponent<MeshCollider>();
+			meshCollider.sharedMesh = mesh;
 		}
 	}
 }
