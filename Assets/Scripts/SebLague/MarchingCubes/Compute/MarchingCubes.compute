@@ -9,41 +9,57 @@ struct Triangle
 };
 
 AppendStructuredBuffer<Triangle> triangles;
-StructuredBuffer<float4> points;
+Texture3D<float> points;
 uint numPointsPerAxis;
+float radius;
 
 const int isoLevel = 0;
 
-int indexFromCoord(int x, int y, int z)
+float3 coordToWorld(int3 coord)
 {
-    return z * numPointsPerAxis * numPointsPerAxis + y * numPointsPerAxis + x;
+    return (coord / (numPointsPerAxis - 1.0) - 0.5f) * radius;
 }
 
-float3 interpolateVerts(float4 v1, float4 v2)
+float sampleDensity(int3 coord)
 {
-    // float t = (isoLevel - v1.w) / (v2.w - v1.w);
-    // return v1.xyz + t * (v2.xyz - v1.xyz);
-    return (v1.xyz + v2.xyz) * 0.5f;
+    coord = max(0, min(coord, numPointsPerAxis));
+    return points[coord];
+}
+
+float3 interpolateVerts(int3 v1, int3 v2)
+{
+    float3 posA = coordToWorld(v1);
+    float3 posB = coordToWorld(v2);
+    // float densityA = sampleDensity(v1);
+    // float densityB = sampleDensity(v2);
+
+    // Interpolate between the two corner points based on the density
+    // float t = (isoLevel - densityA) / (densityB - densityA);
+    // float3 position = posA + t * (posB - posA);
+    // return position;
+
+    return (posA + posB) * 0.5f;
 }
 
 [numthreads(8,8,8)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     // Stop one point before the end because voxel includes neighbouring points
-    if (id.x >= numPointsPerAxis-1 || id.y >= numPointsPerAxis-1 || id.z >= numPointsPerAxis-1) {
+    if (id.x >= numPointsPerAxis - 1 || id.y >= numPointsPerAxis - 1 || id.z >= numPointsPerAxis - 1)
+    {
         return;
     }
-    
+
     // 8 corners of the current cube
-    float4 cubeCorners[8] = {
-        points[indexFromCoord(id.x, id.y, id.z)],
-        points[indexFromCoord(id.x + 1, id.y, id.z)],
-        points[indexFromCoord(id.x + 1, id.y, id.z + 1)],
-        points[indexFromCoord(id.x, id.y, id.z + 1)],
-        points[indexFromCoord(id.x, id.y + 1, id.z)],
-        points[indexFromCoord(id.x + 1, id.y + 1, id.z)],
-        points[indexFromCoord(id.x + 1, id.y + 1, id.z + 1)],
-        points[indexFromCoord(id.x, id.y + 1, id.z + 1)]
+    int3 cubeCoordinates[8] = {
+        id + int3(0, 0, 0),
+        id + int3(1, 0, 0),
+        id + int3(1, 0, 1),
+        id + int3(0, 0, 1),
+        id + int3(0, 1, 0),
+        id + int3(1, 1, 0),
+        id + int3(1, 1, 1),
+        id + int3(0, 1, 1),
     };
 
     // Calculate unique index for each cube configuration.
@@ -51,32 +67,32 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     // A value of 0 means cube is entirely inside surface; 255 entirely outside.
     // The value is used to look up the edge table, which indicates which edges of the cube are cut by the isosurface.
     int cubeIndex = 0;
-    if (cubeCorners[0].w < isoLevel) cubeIndex |= 1;
-    if (cubeCorners[1].w < isoLevel) cubeIndex |= 2;
-    if (cubeCorners[2].w < isoLevel) cubeIndex |= 4;
-    if (cubeCorners[3].w < isoLevel) cubeIndex |= 8;
-    if (cubeCorners[4].w < isoLevel) cubeIndex |= 16;
-    if (cubeCorners[5].w < isoLevel) cubeIndex |= 32;
-    if (cubeCorners[6].w < isoLevel) cubeIndex |= 64;
-    if (cubeCorners[7].w < isoLevel) cubeIndex |= 128;
+    if (points[cubeCoordinates[0]] < isoLevel) cubeIndex |= 1;
+    if (points[cubeCoordinates[1]] < isoLevel) cubeIndex |= 2;
+    if (points[cubeCoordinates[2]] < isoLevel) cubeIndex |= 4;
+    if (points[cubeCoordinates[3]] < isoLevel) cubeIndex |= 8;
+    if (points[cubeCoordinates[4]] < isoLevel) cubeIndex |= 16;
+    if (points[cubeCoordinates[5]] < isoLevel) cubeIndex |= 32;
+    if (points[cubeCoordinates[6]] < isoLevel) cubeIndex |= 64;
+    if (points[cubeCoordinates[7]] < isoLevel) cubeIndex |= 128;
 
     int triangleIndices[16] = triangulation[cubeIndex];
     for (int i = 0; i < 16; i = i + 3)
     {
         if (triangleIndices[i] == -1) break;
-        float4 pointA1 = cubeCorners[cornerIndexAFromEdge[triangleIndices[i]]];
-        float4 pointA2 = cubeCorners[cornerIndexBFromEdge[triangleIndices[i]]];
-        
-        float4 pointB1 = cubeCorners[cornerIndexAFromEdge[triangleIndices[i + 1]]];
-        float4 pointB2 = cubeCorners[cornerIndexBFromEdge[triangleIndices[i + 1]]];
-        
-        float4 pointC1 = cubeCorners[cornerIndexAFromEdge[triangleIndices[i + 2]]];
-        float4 pointC2 = cubeCorners[cornerIndexBFromEdge[triangleIndices[i + 2]]];
+        int3 pointA1 = cubeCoordinates[cornerIndexAFromEdge[triangleIndices[i]]];
+        int3 pointA2 = cubeCoordinates[cornerIndexBFromEdge[triangleIndices[i]]];
+
+        int3 pointB1 = cubeCoordinates[cornerIndexAFromEdge[triangleIndices[i + 1]]];
+        int3 pointB2 = cubeCoordinates[cornerIndexBFromEdge[triangleIndices[i + 1]]];
+
+        int3 pointC1 = cubeCoordinates[cornerIndexAFromEdge[triangleIndices[i + 2]]];
+        int3 pointC2 = cubeCoordinates[cornerIndexBFromEdge[triangleIndices[i + 2]]];
 
         Triangle tri;
-        tri.vertexC = interpolateVerts(pointA1, pointA2);
+        tri.vertexA = interpolateVerts(pointA1, pointA2);
         tri.vertexB = interpolateVerts(pointB1, pointB2);
-        tri.vertexA = interpolateVerts(pointC1, pointC2);
+        tri.vertexC = interpolateVerts(pointC1, pointC2);
         triangles.Append(tri);
     }
 }

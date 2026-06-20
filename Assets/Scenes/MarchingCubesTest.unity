@@ -128,6 +128,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 411319908}
+  - component: {fileID: 411319911}
   - component: {fileID: 411319907}
   - component: {fileID: 411319909}
   - component: {fileID: 411319910}
@@ -137,7 +138,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &411319907
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,13 +151,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2115a38a2c8e4b368993ae25b8f23413, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.GenerateMesh
-  pointShader: {fileID: 7200000, guid: 37f8ac8d0adfb40d880f846ec63b5aee, type: 3}
+  sphereGenerator: {fileID: 411319911}
   triangleShader: {fileID: 7200000, guid: aea4dc0a28cfd453faa9de6188f01665, type: 3}
   numPointsPerAxis: 20
   boundSize: 5
   center: {x: 0, y: 0, z: 0}
   offset: {x: 0, y: 0, z: 0}
-  radius: 2
+  radius: 10
 --- !u!4 &411319908
 Transform:
   m_ObjectHideFlags: 0
@@ -229,6 +230,19 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &411319911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 411319906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c87d34f814a45deb0512d3e9ce18756, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.RenderSphere
+  computeShader: {fileID: 7200000, guid: 37f8ac8d0adfb40d880f846ec63b5aee, type: 3}
 --- !u!1 &521592458
 GameObject:
   m_ObjectHideFlags: 0
@@ -423,7 +437,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &971834925
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -437,8 +451,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.RenderSphere
   computeShader: {fileID: 7200000, guid: 37f8ac8d0adfb40d880f846ec63b5aee, type: 3}
-  numPointsPerAxis: 20
-  radius: 10
 --- !u!4 &971834926
 Transform:
   m_ObjectHideFlags: 0
@@ -466,6 +478,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c00bee7a7d4b42b398b7c7d884760a02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.TextureViewer.TextureViewer3D
+  numPointsPerAxis: 20
+  radius: 10
   sliceDepth: 0.5
   textureRenderer: {fileID: 971834925}
 --- !u!23 &971834928
