@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 411319907}
   - component: {fileID: 411319909}
   - component: {fileID: 411319910}
+  - component: {fileID: 411319912}
   m_Layer: 0
   m_Name: TestGenerateMesh
   m_TagString: Untagged
@@ -153,6 +154,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.GenerateMesh
   sphereGenerator: {fileID: 411319911}
   triangleShader: {fileID: 7200000, guid: aea4dc0a28cfd453faa9de6188f01665, type: 3}
+  editShader: {fileID: 7200000, guid: f3120fb0b0354e09abeb6a6b5ec7d848, type: 3}
   numPointsPerAxis: 100
   radius: 50
   boundSize: {x: 5, y: 5, z: 5}
@@ -241,6 +243,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.RenderSphere
   computeShader: {fileID: 7200000, guid: 37f8ac8d0adfb40d880f846ec63b5aee, type: 3}
+--- !u!64 &411319912
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 411319906}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
 --- !u!1 &521592458
 GameObject:
   m_ObjectHideFlags: 0
@@ -270,10 +294,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d5fa380b1914721a65e558a531bb209, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.Terraformer
+  meshGenerator: {fileID: 411319907}
   terrainMask:
     serializedVersion: 2
     m_Bits: 1
-  terraformRadius: 5
+  terraformWeight: 0.1
+  terraformRadius: 0.5
 --- !u!4 &521592460
 Transform:
   m_ObjectHideFlags: 0

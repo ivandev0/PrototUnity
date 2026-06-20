@@ -3,13 +3,15 @@ using UnityEngine.InputSystem;
 
 namespace SebLague.MarchingCubes {
 	public class Terraformer : MonoBehaviour {
-		public LayerMask terrainMask;
+		[SerializeField] private GenerateMesh meshGenerator;
+		[SerializeField] private LayerMask terrainMask;
 
-		public float terraformRadius = 5;
+		[SerializeField] private float terraformWeight = 1;
+		[SerializeField] private float terraformRadius = 5;
 
-		Camera mainCamera;
-		bool hasHit;
-		Vector3 hitPoint;
+		private Camera mainCamera;
+		private bool hasHit;
+		private Vector3 hitPoint;
 
 		void Start() {
 			mainCamera = Camera.main;
@@ -29,14 +31,18 @@ namespace SebLague.MarchingCubes {
 			}
 		}
 
-		void Terraform(Vector3 terraformPoint) {
+		private void Terraform(Vector3 terraformPoint) {
 			hasHit = true;
 			hitPoint = terraformPoint;
 
-			// TODO
+			if (Mouse.current.leftButton.isPressed) {
+				meshGenerator.Terraform(hitPoint, terraformWeight, terraformRadius);
+			} else if (Mouse.current.rightButton.isPressed) {
+				meshGenerator.Terraform(hitPoint, -terraformWeight, terraformRadius);
+			}
 		}
 
-		void OnDrawGizmos() {
+		private void OnDrawGizmos() {
 			if (hasHit) {
 				Gizmos.color = Color.green;
 				Gizmos.DrawSphere(hitPoint, 0.25f);
