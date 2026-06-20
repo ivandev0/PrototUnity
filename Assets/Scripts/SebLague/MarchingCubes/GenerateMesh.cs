@@ -8,6 +8,7 @@ namespace SebLague.MarchingCubes {
 
 		[SerializeField] private int numPointsPerAxis;
 		[SerializeField] private float radius;
+		[SerializeField] private Vector3 boundSize = Vector3.one;
 
 		private struct Triangle {
 			private Vector3 vertexC;
@@ -102,7 +103,7 @@ namespace SebLague.MarchingCubes {
 			for (var i = 0; i < numTris; i++) {
 				for (var j = 0; j < 3; j++) {
 					meshTriangles[i * 3 + j] = i * 3 + j;
-					vertices[i * 3 + j] = tris[i][j];
+					vertices[i * 3 + j] = Vector3.Scale(tris[i][j] / numPointsPerAxis, boundSize);
 				}
 			}
 

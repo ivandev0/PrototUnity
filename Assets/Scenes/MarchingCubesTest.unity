@@ -153,8 +153,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.GenerateMesh
   sphereGenerator: {fileID: 411319911}
   triangleShader: {fileID: 7200000, guid: aea4dc0a28cfd453faa9de6188f01665, type: 3}
-  numPointsPerAxis: 20
-  radius: 10
+  numPointsPerAxis: 100
+  radius: 50
+  boundSize: {x: 5, y: 5, z: 5}
 --- !u!4 &411319908
 Transform:
   m_ObjectHideFlags: 0
