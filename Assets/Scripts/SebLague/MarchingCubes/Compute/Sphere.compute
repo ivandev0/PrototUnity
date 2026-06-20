@@ -1,32 +1,30 @@
 #pragma kernel CSMain
 
-RWStructuredBuffer<float4> points;
-uint numPointsPerAxis;
-float boundsSize;
-float3 center;
-float3 offset;
-float spacing;
-
+RWTexture3D<float> points;
+uint textureSize;
 float radius;
 
-static const int numThreads = 8;
-
-int indexFromCoord(uint x, uint y, uint z)
+float calculateDensity(int3 cell)
 {
-    return z * numPointsPerAxis * numPointsPerAxis + y * numPointsPerAxis + x;
+    float3 worldPos = cell / float(textureSize - 1.0) - 0.5f;
+
+    float radiusD = radius / float(textureSize);
+    float maxD = length(float3(radiusD, radiusD, radiusD));
+
+    float density = length(worldPos) / maxD - 0.5f;
+
+    return density;
 }
+
+static const int numThreads = 8;
 
 [numthreads(numThreads, numThreads, numThreads)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+    if (id.x >= textureSize || id.y >= textureSize || id.z >= textureSize)
     {
         return;
     }
 
-    float3 pos = center + id * spacing - boundsSize / 2;
-    float density = radius - length(pos + offset);
-
-    int index = indexFromCoord(id.x, id.y, id.z);
-    points[index] = float4(pos, density);
+    points[id] = calculateDensity(id);
 }
