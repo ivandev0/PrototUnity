@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace SebLague.MarchingCubes {
 	public class GenerateMesh : MonoBehaviour {
@@ -96,7 +97,9 @@ namespace SebLague.MarchingCubes {
 			var tris = new Triangle[numTris];
 			trianglesBuffer.GetData(tris, 0, 0, numTris);
 
-			mesh = new Mesh();
+			mesh = new Mesh {
+				indexFormat = IndexFormat.UInt32
+			};
 			var vertices = new Vector3[numTris * 3];
 			var meshTriangles = new int[numTris * 3];
 
