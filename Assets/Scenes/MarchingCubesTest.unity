@@ -154,9 +154,6 @@ MonoBehaviour:
   sphereGenerator: {fileID: 411319911}
   triangleShader: {fileID: 7200000, guid: aea4dc0a28cfd453faa9de6188f01665, type: 3}
   numPointsPerAxis: 20
-  boundSize: 5
-  center: {x: 0, y: 0, z: 0}
-  offset: {x: 0, y: 0, z: 0}
   radius: 10
 --- !u!4 &411319908
 Transform:

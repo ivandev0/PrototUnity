@@ -11,13 +11,12 @@ struct Triangle
 AppendStructuredBuffer<Triangle> triangles;
 Texture3D<float> points;
 uint numPointsPerAxis;
-float radius;
 
 const int isoLevel = 0;
 
 float3 coordToWorld(int3 coord)
 {
-    return (coord / (numPointsPerAxis - 1.0) - 0.5f) * radius;
+    return coord - ((numPointsPerAxis - 1.0) * 0.5f);
 }
 
 float sampleDensity(int3 coord)

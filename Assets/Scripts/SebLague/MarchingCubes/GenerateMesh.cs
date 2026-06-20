@@ -39,7 +39,6 @@ namespace SebLague.MarchingCubes {
 		private static readonly int pointsID = Shader.PropertyToID("points");
 		private static readonly int trianglesID = Shader.PropertyToID("triangles");
 		private static readonly int numPointsPerAxisID = Shader.PropertyToID("numPointsPerAxis");
-		private static readonly int radiusID = Shader.PropertyToID("radius");
 
 		private void Awake() {
 			CreateBuffers();
@@ -81,7 +80,6 @@ namespace SebLague.MarchingCubes {
 			triangleShader.SetTexture(0, pointsID, pointsBuffer);
 			triangleShader.SetBuffer(0, trianglesID, trianglesBuffer);
 			triangleShader.SetInt(numPointsPerAxisID, numPointsPerAxis);
-			triangleShader.SetFloat(radiusID, radius);
 
 			triangleShader.Dispatch(0, numThreadsPerAxis, numThreadsPerAxis, numThreadsPerAxis);
 		}
