@@ -40,8 +40,6 @@ namespace SebLague.MarchingCubes {
 		private MeshFilter meshFilter;
 		private MeshCollider meshCollider;
 
-		const int threadGroupSize = 8;
-
 		private static readonly int pointsID = Shader.PropertyToID("points");
 		private static readonly int trianglesID = Shader.PropertyToID("triangles");
 		private static readonly int numPointsPerAxisID = Shader.PropertyToID("numPointsPerAxis");
@@ -94,13 +92,12 @@ namespace SebLague.MarchingCubes {
 
 		private void GenerateTriangles() {
 			var numberOfCubesPerAxis = NumPointsPerAxis - 1;
-			var numThreadsPerAxis = Mathf.CeilToInt(numberOfCubesPerAxis / (float)threadGroupSize);
 
 			trianglesBuffer.SetCounterValue(0);
 			triangleShader.SetBuffer(0, trianglesID, trianglesBuffer);
 			triangleShader.SetInt(numPointsPerAxisID, NumPointsPerAxis);
 
-			triangleShader.Dispatch(0, numThreadsPerAxis, numThreadsPerAxis, numThreadsPerAxis);
+			ComputeHelper.Dispatch(triangleShader, numberOfCubesPerAxis, numberOfCubesPerAxis, numberOfCubesPerAxis);
 		}
 
 		private void GenerateMarchingMesh() {
@@ -147,8 +144,7 @@ namespace SebLague.MarchingCubes {
 			editShader.SetFloat(deltaTimeID, Time.deltaTime);
 			editShader.SetFloat(weightID, terraformWeight);
 			
-			var numThreadsPerAxis = Mathf.CeilToInt(textureSize / (float)threadGroupSize);
-			editShader.Dispatch(0, numThreadsPerAxis, numThreadsPerAxis, numThreadsPerAxis);
+			ComputeHelper.Dispatch(editShader, textureSize, textureSize, textureSize);
 
 			GenerateTriangles();
 			GenerateMarchingMesh();

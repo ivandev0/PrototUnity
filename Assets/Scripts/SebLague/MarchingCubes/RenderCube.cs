@@ -6,8 +6,6 @@ namespace SebLague.MarchingCubes {
 		[SerializeField] private float size;
 
 		private RenderTexture pointsTexture;
-
-		private const int threadGroupSize = 8;
 		
 		private static readonly int pointsID = Shader.PropertyToID("points");
 		private static readonly int textureSizeID = Shader.PropertyToID("textureSize");
@@ -29,14 +27,12 @@ namespace SebLague.MarchingCubes {
 
 		public override RenderTexture GenerateTexture() {
 			CreateBuffers(NumPointsPerAxis);
-			var numThreadsPerAxis = Mathf.CeilToInt(NumPointsPerAxis / (float) threadGroupSize);
 
 			computeShader.SetTexture(0, pointsID, pointsTexture);
 			computeShader.SetInt(textureSizeID, NumPointsPerAxis);
 			computeShader.SetFloat(sizeID, size);
 
-			// Dispatch shader
-			computeShader.Dispatch(0, numThreadsPerAxis, numThreadsPerAxis, numThreadsPerAxis);
+			ComputeHelper.Dispatch(computeShader, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
 			return pointsTexture;
 		}
 	}
