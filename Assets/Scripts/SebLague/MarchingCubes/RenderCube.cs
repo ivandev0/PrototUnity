@@ -1,9 +1,9 @@
 using UnityEngine;
 
 namespace SebLague.MarchingCubes {
-	public class RenderSphere : AbstractTextureGenerator {
+	public class RenderCube : AbstractTextureGenerator {
 		[SerializeField] private ComputeShader computeShader;
-		[SerializeField] private float radius;
+		[SerializeField] private float size;
 
 		private RenderTexture pointsTexture;
 
@@ -11,7 +11,7 @@ namespace SebLague.MarchingCubes {
 		
 		private static readonly int pointsID = Shader.PropertyToID("points");
 		private static readonly int textureSizeID = Shader.PropertyToID("textureSize");
-		private static readonly int radiusID = Shader.PropertyToID("radius");
+		private static readonly int sizeID = Shader.PropertyToID("size");
 
 		private void CreateBuffers(int numPointsPerAxis) {
 			pointsTexture = Utils.CreateRenderCubeTexture(numPointsPerAxis, "pointsTexture");
@@ -33,7 +33,7 @@ namespace SebLague.MarchingCubes {
 
 			computeShader.SetTexture(0, pointsID, pointsTexture);
 			computeShader.SetInt(textureSizeID, NumPointsPerAxis);
-			computeShader.SetFloat(radiusID, radius);
+			computeShader.SetFloat(sizeID, size);
 
 			// Dispatch shader
 			computeShader.Dispatch(0, numThreadsPerAxis, numThreadsPerAxis, numThreadsPerAxis);

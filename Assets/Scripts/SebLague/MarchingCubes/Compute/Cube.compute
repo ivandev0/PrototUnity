@@ -1,0 +1,31 @@
+#pragma kernel CSMain
+
+RWTexture3D<float> points;
+uint textureSize;
+float size;
+
+float calculateDensity(int3 cell)
+{
+    float3 center = (textureSize - 1) * 0.5f;
+    float3 p = float3(cell) - center;
+
+    bool inside =
+        abs(p.x) <= size &&
+        abs(p.y) <= size &&
+        abs(p.z) <= size;
+
+    return inside ? -1.0f : 1.0f;
+}
+
+static const int numThreads = 8;
+
+[numthreads(numThreads, numThreads, numThreads)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= textureSize || id.y >= textureSize || id.z >= textureSize)
+    {
+        return;
+    }
+
+    points[id] = calculateDensity(id);
+}

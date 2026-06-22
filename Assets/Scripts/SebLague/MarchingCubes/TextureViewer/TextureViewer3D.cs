@@ -2,9 +2,6 @@ using UnityEngine;
 
 namespace SebLague.MarchingCubes.TextureViewer {
 	public class TextureViewer3D : MonoBehaviour {
-		[SerializeField] private int numPointsPerAxis;
-		[SerializeField] private float radius;
-		
 		[SerializeField] 
 		[Range(0, 1)] private float sliceDepth;
 		[SerializeField] private RenderSphere textureRenderer;
@@ -17,7 +14,7 @@ namespace SebLague.MarchingCubes.TextureViewer {
 
 		void Start() {
 			material = GetComponentInChildren<MeshRenderer>().material;
-			renderTexture = textureRenderer.Generate(numPointsPerAxis, radius);
+			renderTexture = textureRenderer.GenerateTexture();
 		}
 
 		public void Display() {

@@ -5,13 +5,13 @@ using UnityEngine.Rendering;
 
 namespace SebLague.MarchingCubes {
 	public class GenerateMesh : MonoBehaviour {
-		[SerializeField] private RenderSphere sphereGenerator;
+		[SerializeField] private AbstractTextureGenerator textureGenerator;
 		[SerializeField] private ComputeShader triangleShader;
 		[SerializeField] private ComputeShader editShader;
 
-		[SerializeField] private int numPointsPerAxis;
-		[SerializeField] private float radius;
 		[SerializeField] private Vector3 boundSize = Vector3.one;
+		
+		private int NumPointsPerAxis => textureGenerator.NumPointsPerAxis;
 
 		private struct Triangle {
 			private Vector3 vertexC;
@@ -62,7 +62,7 @@ namespace SebLague.MarchingCubes {
 		}
 
 		private void CreateBuffers() {
-			var numberOfCubesPerAxis = numPointsPerAxis - 1;
+			var numberOfCubesPerAxis = NumPointsPerAxis - 1;
 			var numVoxels = numberOfCubesPerAxis * numberOfCubesPerAxis * numberOfCubesPerAxis;
 			var maxTriangleCount = numVoxels * 5;
 
@@ -88,17 +88,17 @@ namespace SebLague.MarchingCubes {
 		}
 
 		private void GeneratePoints() {
-			pointsBuffer = sphereGenerator.Generate(numPointsPerAxis, radius);
+			pointsBuffer = textureGenerator.GenerateTexture();
 			InitTextures();
 		}
 
 		private void GenerateTriangles() {
-			var numberOfCubesPerAxis = numPointsPerAxis - 1;
+			var numberOfCubesPerAxis = NumPointsPerAxis - 1;
 			var numThreadsPerAxis = Mathf.CeilToInt(numberOfCubesPerAxis / (float)threadGroupSize);
 
 			trianglesBuffer.SetCounterValue(0);
 			triangleShader.SetBuffer(0, trianglesID, trianglesBuffer);
-			triangleShader.SetInt(numPointsPerAxisID, numPointsPerAxis);
+			triangleShader.SetInt(numPointsPerAxisID, NumPointsPerAxis);
 
 			triangleShader.Dispatch(0, numThreadsPerAxis, numThreadsPerAxis, numThreadsPerAxis);
 		}
@@ -123,7 +123,7 @@ namespace SebLague.MarchingCubes {
 			for (var i = 0; i < numTris; i++) {
 				for (var j = 0; j < 3; j++) {
 					meshTriangles[i * 3 + j] = i * 3 + j;
-					vertices[i * 3 + j] = Vector3.Scale(tris[i][j] / numPointsPerAxis, boundSize);
+					vertices[i * 3 + j] = Vector3.Scale(tris[i][j] / NumPointsPerAxis, boundSize);
 				}
 			}
 
@@ -155,7 +155,7 @@ namespace SebLague.MarchingCubes {
 		}
 
 		private static Vector3Int GetTexturePosition(Vector3 worldPosition, int textureSize, float cubeSize) {
-			var textureNormalizedCoordinates = ((worldPosition + Vector3.one * cubeSize * 0.5f) / cubeSize).Clamp01();
+			var textureNormalizedCoordinates = ((worldPosition + Vector3.one * (cubeSize * 0.5f)) / cubeSize).Clamp01();
 			return (textureNormalizedCoordinates * (textureSize - 1)).RoundToInt();
 		}
 	}
