@@ -244,9 +244,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c87d34f814a45deb0512d3e9ce18756, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.RenderSphere
-  numPointsPerAxis: 30
+  numPointsPerAxis: 200
   computeShader: {fileID: 7200000, guid: 37f8ac8d0adfb40d880f846ec63b5aee, type: 3}
-  radius: 10
+  radius: 70
 --- !u!64 &411319912
 MeshCollider:
   m_ObjectHideFlags: 0
