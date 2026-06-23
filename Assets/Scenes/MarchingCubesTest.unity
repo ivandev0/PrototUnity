@@ -158,6 +158,8 @@ MonoBehaviour:
   editShader: {fileID: 7200000, guid: f3120fb0b0354e09abeb6a6b5ec7d848, type: 3}
   voxelShader: {fileID: 7200000, guid: a55911b9b5004b8595b531b9b41a1489, type: 3}
   boundSize: {x: 5, y: 5, z: 5}
+  voxelMaterial: {fileID: 2100000, guid: df22267024574420d94cf12fe97679e6, type: 2}
+  voxelMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &411319908
 Transform:
   m_ObjectHideFlags: 0
@@ -242,9 +244,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c87d34f814a45deb0512d3e9ce18756, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.RenderSphere
-  numPointsPerAxis: 100
+  numPointsPerAxis: 30
   computeShader: {fileID: 7200000, guid: 37f8ac8d0adfb40d880f846ec63b5aee, type: 3}
-  radius: 30
+  radius: 10
 --- !u!64 &411319912
 MeshCollider:
   m_ObjectHideFlags: 0

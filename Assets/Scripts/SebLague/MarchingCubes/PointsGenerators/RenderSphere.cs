@@ -16,7 +16,9 @@ namespace SebLague.MarchingCubes.PointsGenerators {
 		}
 
 		private void ReleaseBuffers() {
-			pointsTexture?.Release();
+			if (pointsTexture != null) { 
+				pointsTexture.Release();
+			}
 		}
 
 		private void OnDestroy() {
