@@ -1,0 +1,39 @@
+#pragma kernel CSMain
+
+struct Voxel
+{
+    float3 position;
+};
+
+AppendStructuredBuffer<Voxel> voxels;
+Texture3D<float> points;
+uint numPointsPerAxis;
+
+const int isoLevel = 0;
+
+float3 coordToWorld(int3 coord)
+{
+    return coord - ((numPointsPerAxis - 1.0) * 0.5f);
+}
+
+float sampleDensity(int3 coord)
+{
+    coord = max(0, min(coord, numPointsPerAxis));
+    return points[coord];
+}
+
+[numthreads(8,8,8)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= numPointsPerAxis || id.y >= numPointsPerAxis || id.z >= numPointsPerAxis)
+    {
+        return;
+    }
+    
+    float density = sampleDensity(id);
+    if (density > 0) return;
+
+    Voxel voxel;
+    voxel.position = coordToWorld(id);
+    voxels.Append(voxel);
+}

@@ -156,6 +156,7 @@ MonoBehaviour:
   textureGenerator: {fileID: 411319911}
   triangleShader: {fileID: 7200000, guid: aea4dc0a28cfd453faa9de6188f01665, type: 3}
   editShader: {fileID: 7200000, guid: f3120fb0b0354e09abeb6a6b5ec7d848, type: 3}
+  voxelShader: {fileID: 7200000, guid: a55911b9b5004b8595b531b9b41a1489, type: 3}
   boundSize: {x: 5, y: 5, z: 5}
 --- !u!4 &411319908
 Transform:

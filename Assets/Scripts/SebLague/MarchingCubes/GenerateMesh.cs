@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using PrototUnity.Utils;
 using SebLague.MarchingCubes.PointsGenerators;
 using UnityEngine;
@@ -9,6 +10,7 @@ namespace SebLague.MarchingCubes {
 		[SerializeField] private AbstractTextureGenerator textureGenerator;
 		[SerializeField] private ComputeShader triangleShader;
 		[SerializeField] private ComputeShader editShader;
+		[SerializeField] private ComputeShader voxelShader;
 
 		[SerializeField] private Vector3 boundSize = Vector3.one;
 		
@@ -32,10 +34,15 @@ namespace SebLague.MarchingCubes {
 				}
 			}
 		};
+		
+		private struct Voxel {
+			private Vector3 position;
+		}
 
 		private RenderTexture pointsBuffer;
 		private ComputeBuffer trianglesBuffer;
 		private ComputeBuffer triCountBuffer;
+		private ComputeBuffer voxelsBuffer;
 
 		private Mesh mesh;
 		private MeshFilter meshFilter;
@@ -43,6 +50,7 @@ namespace SebLague.MarchingCubes {
 
 		private static readonly int pointsID = Shader.PropertyToID("points");
 		private static readonly int trianglesID = Shader.PropertyToID("triangles");
+		private static readonly int voxelsID = Shader.PropertyToID("voxels");
 		private static readonly int numPointsPerAxisID = Shader.PropertyToID("numPointsPerAxis");
 		private static readonly int textureSizeID = Shader.PropertyToID("textureSize");
 		private static readonly int brushCenterID = Shader.PropertyToID("brushCenter");
@@ -58,6 +66,8 @@ namespace SebLague.MarchingCubes {
 			GeneratePoints();
 			GenerateTriangles();
 			GenerateMarchingMesh();
+			GenerateVoxels();
+			SetUpVoxelMaterial();
 		}
 
 		private void CreateBuffers() {
@@ -65,13 +75,15 @@ namespace SebLague.MarchingCubes {
 			var numVoxels = numberOfCubesPerAxis * numberOfCubesPerAxis * numberOfCubesPerAxis;
 			var maxTriangleCount = numVoxels * 5;
 
-			trianglesBuffer = new ComputeBuffer(maxTriangleCount, sizeof(float) * 3 * 3, ComputeBufferType.Append);
+			trianglesBuffer = new ComputeBuffer(maxTriangleCount, Marshal.SizeOf(typeof(Triangle)), ComputeBufferType.Append);
 			triCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
+			voxelsBuffer = new ComputeBuffer(numVoxels, Marshal.SizeOf(typeof(Voxel)), ComputeBufferType.Append);
 		}
 
 		private void InitTextures() {
 			triangleShader.SetTexture(0, pointsID, pointsBuffer);
 			editShader.SetTexture(0, pointsID, pointsBuffer);
+			voxelShader.SetTexture(0, pointsID, pointsBuffer);
 		}
 
 		private void ReleaseBuffers() {
@@ -129,7 +141,7 @@ namespace SebLague.MarchingCubes {
 			mesh.triangles = meshTriangles;
 
 			mesh.RecalculateNormals();
-			meshFilter.mesh = mesh;
+			// meshFilter.mesh = mesh;
 			meshCollider.sharedMesh = mesh; 
 		}
 
@@ -149,11 +161,23 @@ namespace SebLague.MarchingCubes {
 
 			GenerateTriangles();
 			GenerateMarchingMesh();
+			GenerateVoxels();
+			SetUpVoxelMaterial();
 		}
 
 		private static Vector3Int GetTexturePosition(Vector3 worldPosition, int textureSize, float cubeSize) {
 			var textureNormalizedCoordinates = ((worldPosition + Vector3.one * (cubeSize * 0.5f)) / cubeSize).Clamp01();
 			return (textureNormalizedCoordinates * (textureSize - 1)).RoundToInt();
+		}
+
+		private void GenerateVoxels() {
+			voxelShader.SetBuffer(0, voxelsID, voxelsBuffer);
+			voxelShader.SetInt(numPointsPerAxisID, NumPointsPerAxis);
+			ComputeHelper.Dispatch(voxelShader, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
+		}
+
+		private void SetUpVoxelMaterial() {
+			// TODO set up material
 		}
 	}
 }
