@@ -1,3 +1,4 @@
+using SebLague.MarchingCubes.PointsGenerators;
 using UnityEngine;
 
 namespace SebLague.MarchingCubes.TextureViewer {

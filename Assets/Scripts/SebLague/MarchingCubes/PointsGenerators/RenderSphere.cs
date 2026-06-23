@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SebLague.MarchingCubes {
+namespace SebLague.MarchingCubes.PointsGenerators {
 	public class RenderSphere : AbstractTextureGenerator {
 		[SerializeField] private ComputeShader computeShader;
 		[SerializeField] private float radius;

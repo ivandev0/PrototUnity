@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SebLague.MarchingCubes {
+namespace SebLague.MarchingCubes.PointsGenerators {
 	public abstract class AbstractTextureGenerator : MonoBehaviour {
 		[SerializeField] private int numPointsPerAxis;
 		public int NumPointsPerAxis => numPointsPerAxis;

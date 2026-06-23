@@ -1,5 +1,6 @@
 using System;
 using PrototUnity.Utils;
+using SebLague.MarchingCubes.PointsGenerators;
 using UnityEngine;
 using UnityEngine.Rendering;
 
