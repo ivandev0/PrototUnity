@@ -40,6 +40,12 @@ Shader "Custom/VoxelShader"
             
             StructuredBuffer<float3> voxels;
             uniform float4x4 _ObjectToWorld;
+            
+            float3 GetVoxelPosition(float3 meshPositionOS, uint svInstanceID)
+            {
+                uint instanceID = GetIndirectInstanceID(svInstanceID);
+                return meshPositionOS + voxels[instanceID];
+            }
 
             Varyings vert(Attributes IN, uint svInstanceID : SV_InstanceID)
             {
@@ -50,9 +56,7 @@ Shader "Custom/VoxelShader"
                 UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
-                uint instanceID = GetIndirectInstanceID(svInstanceID);
-
-                float4 scaledPosition = mul(_ObjectToWorld, IN.positionOS.xyz + voxels[instanceID]);
+                float4 scaledPosition = mul(_ObjectToWorld, GetVoxelPosition(IN.positionOS, svInstanceID));
                 OUT.positionCS = TransformObjectToHClip(scaledPosition);
                 OUT.uv = TRANSFORM_TEX(IN.texcoord, _BaseMap);
                 return OUT;
