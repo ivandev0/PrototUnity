@@ -191,6 +191,8 @@ namespace SebLague.MarchingCubes {
 			
 			var rp = new RenderParams(voxelMaterial);
 			rp.worldBounds = new Bounds(Vector3.zero, boundSize * 1.1f);
+			rp.shadowCastingMode = ShadowCastingMode.On;
+			rp.receiveShadows = true;
 			rp.matProps = new MaterialPropertyBlock();
 			rp.matProps.SetMatrix("_ObjectToWorld", Matrix4x4.Scale(boundSize / NumPointsPerAxis));
 			var commandCount = 1;
