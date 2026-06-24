@@ -23,24 +23,26 @@ Shader "Custom/VoxelShader"
             {
                 "LightMode" = "UniversalForward"
             }
-            
-            HLSLPROGRAM
 
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
 
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
+            #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #define UNITY_INDIRECT_DRAW_ARGS IndirectDrawIndexedArgs
             #include "UnityIndirect.cginc"
-            
+
+
             StructuredBuffer<float3> voxels;
             uniform float4x4 _ObjectToWorld;
-            
+
             float3 GetVoxelPosition(float3 meshPositionOS, uint svInstanceID)
             {
                 uint instanceID = GetIndirectInstanceID(svInstanceID);
@@ -51,21 +53,38 @@ Shader "Custom/VoxelShader"
             {
                 InitIndirectDrawArgs(0);
                 Varyings OUT;
-                
+
                 UNITY_SETUP_INSTANCE_ID(IN);
                 UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
-                float4 scaledPosition = mul(_ObjectToWorld, GetVoxelPosition(IN.positionOS, svInstanceID));
-                OUT.positionCS = TransformObjectToHClip(scaledPosition);
+                float3 positionOS = GetVoxelPosition(IN.positionOS.xyz, svInstanceID);
+                float3 positionWS = mul(_ObjectToWorld, float4(positionOS, 1.0)).xyz;
+                float3 normalWS = normalize(mul((float3x3)_ObjectToWorld, IN.normalOS));
+
+                OUT.positionWS = positionWS;
+                OUT.normalWS = normalWS;
+                OUT.positionCS = TransformWorldToHClip(positionWS);
                 OUT.uv = TRANSFORM_TEX(IN.texcoord, _BaseMap);
+                OUT.shadowCoord = TransformWorldToShadowCoord(positionWS);
+
                 return OUT;
             }
 
             half4 frag(Varyings IN) : SV_Target
             {
-                half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * _BaseColor;
-                return color;
+                half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * _BaseColor;
+                half3 normalWS = normalize(IN.normalWS);
+
+                // Ambient/environment lighting.
+                half3 litColor = SampleSH(normalWS);
+
+                // Main light, including shadow attenuation.
+                Light mainLight = GetMainLight(IN.shadowCoord);
+                half mainNdotL = saturate(dot(normalWS, mainLight.direction));
+                litColor += mainLight.color * mainNdotL * mainLight.shadowAttenuation;
+
+                return half4(baseColor.rgb * litColor, baseColor.a);
             }
             ENDHLSL
         }
