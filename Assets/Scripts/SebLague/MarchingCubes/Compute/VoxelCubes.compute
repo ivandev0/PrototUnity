@@ -22,6 +22,29 @@ float sampleDensity(int3 coord)
     return points[coord];
 }
 
+bool isInsideMesh(uint3 position)
+{
+    for (int i = -1; i < 2; ++i)
+    {
+        for (int j = -1; j < 2; ++j)
+        {
+            for (int k = -1; k < 2; ++k)
+            {
+                if (i + position.x < 0 || position.x + i >= numPointsPerAxis) continue;
+                if (j + position.y < 0 || position.y + j >= numPointsPerAxis) continue;
+                if (k + position.z < 0 || position.z + k >= numPointsPerAxis) continue;
+
+                if (points[position + int3(i, j, k)] > 0)
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 [numthreads(8,8,8)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
@@ -29,9 +52,11 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    
+
     float density = sampleDensity(id);
     if (density > 0) return;
+    
+    if (isInsideMesh(id)) return;
 
     Voxel voxel;
     voxel.position = coordToWorld(id);
