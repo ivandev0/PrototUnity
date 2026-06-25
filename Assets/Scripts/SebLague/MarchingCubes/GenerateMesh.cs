@@ -59,6 +59,7 @@ namespace SebLague.MarchingCubes {
 		private static readonly int brushRadiusID = Shader.PropertyToID("brushRadius");
 		private static readonly int deltaTimeID = Shader.PropertyToID("deltaTime");
 		private static readonly int weightID = Shader.PropertyToID("weight");
+		private static readonly int objectToWorldID = Shader.PropertyToID("_ObjectToWorld");
 
 		private void Awake() {
 			meshFilter = GetComponent<MeshFilter>();
@@ -189,12 +190,13 @@ namespace SebLague.MarchingCubes {
 			triCountBuffer.GetData(triCountArray);
 			var voxelsAmount = triCountArray[0];
 			
-			var rp = new RenderParams(voxelMaterial);
-			rp.worldBounds = new Bounds(Vector3.zero, boundSize * 1.1f);
-			rp.shadowCastingMode = ShadowCastingMode.On;
-			rp.receiveShadows = true;
-			rp.matProps = new MaterialPropertyBlock();
-			rp.matProps.SetMatrix("_ObjectToWorld", Matrix4x4.Scale(boundSize / NumPointsPerAxis));
+			var rp = new RenderParams(voxelMaterial) {
+				worldBounds = new Bounds(Vector3.zero, boundSize * 1.1f),
+				shadowCastingMode = ShadowCastingMode.On,
+				receiveShadows = true,
+				matProps = new MaterialPropertyBlock()
+			};
+			rp.matProps.SetMatrix(objectToWorldID, Matrix4x4.Scale(boundSize / NumPointsPerAxis));
 			var commandCount = 1;
 			var commandBuf = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, commandCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
 			var commandData = new GraphicsBuffer.IndirectDrawIndexedArgs[commandCount];
