@@ -32,6 +32,7 @@ Shader "Custom/VoxelShader"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
+            #define UNITY_VERTEX_INPUT_INSTANCE_ID uint instanceID : SV_InstanceID;
             
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
@@ -43,6 +44,7 @@ Shader "Custom/VoxelShader"
             #include "UnityIndirect.cginc"
 
             StructuredBuffer<float3> voxels;
+            Texture3D colors;
             uniform float4x4 _ObjectToWorld;
 
             float3 GetVoxelPosition(float3 meshPositionOS, uint svInstanceID)
@@ -69,13 +71,24 @@ Shader "Custom/VoxelShader"
                 OUT.positionCS = TransformWorldToHClip(positionWS);
                 OUT.uv = TRANSFORM_TEX(IN.texcoord, _BaseMap);
                 OUT.shadowCoord = TransformWorldToShadowCoord(positionWS);
+                OUT.instanceID = GetIndirectInstanceID(svInstanceID);
 
                 return OUT;
+            }
+            
+            float4 GetColor(uint instanceID)
+            {
+                uint width = 100, height = 100;
+                int x = instanceID % width;
+                int y = (instanceID / width) % height;
+                int z = instanceID / (width * height);
+                half4 color = colors.Load(int4(x, y, z, 0));
+                return color;  
             }
 
             half4 frag(Varyings IN) : SV_Target
             {
-                half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * _BaseColor;
+                half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * GetColor(IN.instanceID);
                 half3 normalWS = normalize(IN.normalWS);
 
                 // Ambient/environment lighting.

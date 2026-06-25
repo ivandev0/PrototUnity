@@ -317,7 +317,7 @@ MonoBehaviour:
   terrainMask:
     serializedVersion: 2
     m_Bits: 1
-  terraformWeight: 0.1
+  terraformWeight: 1
   terraformRadius: 0.5
 --- !u!4 &521592460
 Transform:
