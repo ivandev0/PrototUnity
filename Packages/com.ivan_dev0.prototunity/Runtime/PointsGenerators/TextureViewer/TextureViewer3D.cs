@@ -4,7 +4,8 @@ namespace PrototUnity.PointsGenerators.TextureViewer {
 	public class TextureViewer3D : MonoBehaviour {
 		[SerializeField] 
 		[Range(0, 1)] private float sliceDepth;
-		[SerializeField] private RenderSphere textureRenderer;
+		[SerializeField] private AbstractTextureGenerator textureRenderer;
+		[SerializeField] private Shader textureShader;
 
 		private Material material;
 		private RenderTexture renderTexture;
@@ -13,11 +14,9 @@ namespace PrototUnity.PointsGenerators.TextureViewer {
 		private static readonly int displayTexture = Shader.PropertyToID("DisplayTexture");
 
 		void Start() {
-			material = GetComponentInChildren<MeshRenderer>().material;
+			material = new Material(textureShader);
+			GetComponent<MeshRenderer>().material = material;
 			renderTexture = textureRenderer.GenerateTexture();
-		}
-
-		public void Display() {
 		}
 
 		void Update() {

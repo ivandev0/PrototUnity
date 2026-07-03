@@ -1,6 +1,10 @@
 Shader "Unlit/TextureViewer3D"
 {
-    Properties {}
+    Properties
+    {
+        DisplayTexture ("Display Texture", 3D) = "" {}
+        sliceDepth ("Slice Depth", Range(0, 1)) = 0.5
+    }
     SubShader
     {
         Tags
@@ -19,7 +23,11 @@ Shader "Unlit/TextureViewer3D"
 
             Texture3D<float> DisplayTexture;
             SamplerState samplerDisplayTexture;
-            float sliceDepth;
+            
+            // For URP
+            CBUFFER_START(UnityPerMaterial)
+                float sliceDepth;
+            CBUFFER_END
 
             struct appdata
             {
