@@ -1,0 +1,375 @@
+#pragma kernel BuildVoronoiCells3D
+
+#define EPSILON 1e-5
+#define MAX_VERTICES 255
+#define MAX_FACES 63
+#define MAX_EDGES 63
+
+Texture3D<float4> centers;
+
+struct VoronoiCell
+{
+    uint vertexCount;
+    uint vertexStart;
+};
+
+RWStructuredBuffer<VoronoiCell> cells;
+RWStructuredBuffer<float3> vertices;
+
+uint3 _CenterGridSize;
+float3 _WorldOrigin;
+float3 _BoxSize;
+
+struct ConvexFace
+{
+    int vertexStart;
+    uint vertexCount;
+};
+
+struct ClipEdge
+{
+    float3 entry;
+    float3 exit;
+};
+
+struct FaceAndEdge
+{
+    bool hasFace;
+    ConvexFace face;
+    bool hasEdge;
+    ClipEdge edge;
+};
+
+groupshared float3 current_vertices[MAX_VERTICES];
+groupshared ConvexFace current_faces[MAX_FACES];
+
+groupshared float3 new_vertices[MAX_VERTICES];
+groupshared ConvexFace new_faces[MAX_FACES];
+
+float3 GetSeedPosition(int3 seedBox)
+{
+    return centers.Load(int4(seedBox, 0)).xyz;
+}
+
+static bool IsIndexInsideGrid(int3 index, uint3 cellCount)
+{
+    return index.x >= 0 && index.x < cellCount.x
+        && index.y >= 0 && index.y < cellCount.y
+        && index.z >= 0 && index.z < cellCount.z;
+}
+
+static bool AddUnique(inout float3 points[MAX_VERTICES], inout uint count, float3 value)
+{
+    for (uint i = 0; i < count; ++i)
+    {
+        if (length(value - points[i]) < EPSILON)
+        {
+            return false;
+        }
+    }
+
+    // No free space.
+    if (count >= MAX_VERTICES)
+    {
+        return false;
+    }
+
+    points[count] = value;
+    count++;
+
+    return true;
+}
+
+static void insertSort(inout float3 points[MAX_VERTICES], int length, float3 center, float3 v, float3 u)
+{
+    int j;
+    for (int i = 1; i < length; i++)
+    {
+        float3 p1 = points[i];
+        for (j = i - 1; j >= 0; j--)
+        {
+            float3 p2 = points[j];
+            float3 d1 = p1 - center;
+            float3 d2 = p2 - center;
+            float a1 = atan2(dot(v, d1), dot(u, d1));
+            float a2 = atan2(dot(v, d2), dot(u, d2));
+            if (a2 <= a1) break;
+            points[j + 1] = points[j];
+        }
+        points[j + 1] = p1;
+    }
+}
+
+ConvexFace BuildCapFace(ClipEdge capEdges[MAX_EDGES], int edgesCount, int startIndex, float3 normal)
+{
+    ConvexFace result;
+    result.vertexStart = -1;
+    result.vertexCount = 0;
+
+    float3 points[MAX_VERTICES];
+    uint pointsCount = 0;
+    for (int i_edge = 0; i_edge < edgesCount; i_edge++)
+    {
+        AddUnique(points, pointsCount, capEdges[i_edge].entry);
+        AddUnique(points, pointsCount, capEdges[i_edge].exit);
+    }
+
+    if (pointsCount < 3)
+    {
+        return result;
+    }
+
+    float3 center = float3(0, 0, 0);
+    for (int i_point = 0; i_point < pointsCount; i_point++)
+    {
+        center += points[i_point];
+    }
+    center /= pointsCount;
+
+    float3 reference = abs(normal.y) > 0.9f ? float3(1, 0, 0) : float3(0, 1, 0);
+    float3 u = normalize(cross(normal, reference));
+    float3 v = normalize(cross(normal, u));
+
+    insertSort(points, pointsCount, center, v, u);
+
+    for (uint i = 0; i < pointsCount; i++)
+    {
+        new_vertices[startIndex + i] = points[i];
+    }
+
+    result.vertexCount = pointsCount;
+    result.vertexStart = startIndex;
+
+    return result;
+}
+
+static bool AddIfNoDuplicates(inout float3 clipped[MAX_VERTICES], inout int index, float3 newPoint)
+{
+    if (index == 0)
+    {
+        clipped[0] = newPoint;
+        index++;
+        return true;
+    }
+
+    float3 first = clipped[0];
+    float3 last = clipped[index - 1];
+    if (length(newPoint - first) > EPSILON && length(newPoint - last) > EPSILON)
+    {
+        clipped[index] = newPoint;
+        index++;
+        return true;
+    }
+
+    return false;
+}
+
+FaceAndEdge ClipFace(ConvexFace face, int startIndex, float3 clipPlaneNormal, float clipPlaneOffsetFromOrigin)
+{
+    // TODO can be dropped; we can put new vertices directly into new_vertices
+    float3 clipped[MAX_VERTICES];
+    int clipped_index = 0;
+    float3 entryCut = float3(0, 0, 0), exitCut = float3(0, 0, 0);
+    bool hasEntry = false;
+    bool hasExit = false;
+
+    for (uint i = 0; i < face.vertexCount; i++)
+    {
+        float3 a = current_vertices[face.vertexStart + i];
+        float3 b = current_vertices[face.vertexStart + ((i + 1) % face.vertexCount)];
+        float da = dot(clipPlaneNormal, a) - clipPlaneOffsetFromOrigin;
+        float db = dot(clipPlaneNormal, b) - clipPlaneOffsetFromOrigin;
+        if (abs(da) <= EPSILON) da = 0;
+        if (abs(db) <= EPSILON) db = 0;
+        bool aIn = da <= 0;
+        bool bIn = db <= 0;
+
+        if (aIn) AddIfNoDuplicates(clipped, clipped_index, a);
+        if (aIn && !bIn)
+        {
+            float t = da / (da - db);
+            float3 intersectionPoint = lerp(a, b, t);
+            AddIfNoDuplicates(clipped, clipped_index, intersectionPoint);
+            exitCut = intersectionPoint;
+            hasExit = true;
+        }
+        else if (!aIn && bIn)
+        {
+            float t = da / (da - db);
+            float3 intersectionPoint = lerp(a, b, t);
+            AddIfNoDuplicates(clipped, clipped_index, intersectionPoint);
+            entryCut = intersectionPoint;
+            hasEntry = true;
+        }
+    }
+
+    if (clipped_index >= 3)
+    {
+        for (int j = 0; j < clipped_index; ++j)
+        {
+            new_vertices[startIndex + j] = clipped[j];
+        }
+    }
+
+    ClipEdge edge;
+    edge.entry = entryCut;
+    edge.exit = exitCut;
+
+    ConvexFace newFace;
+    newFace.vertexStart = startIndex;
+    newFace.vertexCount = clipped_index;
+
+    FaceAndEdge result;
+    result.hasFace = clipped_index >= 3;
+    result.face = newFace;
+    result.hasEdge = hasEntry && hasExit;
+    result.edge = edge;
+    return result;
+}
+
+// Keep half-space { x : dot(normal, x) <= clippingPlaneOffsetFromOrigin }.
+void ClipByPlane(inout int face_count, float3 normal, float clippingPlaneOffsetFromOrigin)
+{
+    int newFaceIndex = 0;
+    int newVertexIndex = 0;
+
+    ClipEdge capEdges[MAX_EDGES];
+    int capIndex = 0;
+
+    for (int faceIndex = 0; faceIndex < face_count; faceIndex++)
+    {
+        ConvexFace face = current_faces[faceIndex];
+        if (face.vertexCount == 0) continue;
+        FaceAndEdge face_and_edge = ClipFace(face, newVertexIndex, normal, clippingPlaneOffsetFromOrigin);
+        if (face_and_edge.hasFace)
+        {
+            newVertexIndex += face_and_edge.face.vertexCount;
+            new_faces[newFaceIndex++] = face_and_edge.face;
+        }
+        if (face_and_edge.hasEdge)
+        {
+            capEdges[capIndex++] = face_and_edge.edge;
+        }
+    }
+
+    ConvexFace capFace = BuildCapFace(capEdges, capIndex, newVertexIndex, normal);
+    if (capFace.vertexCount > 0)
+    {
+        newVertexIndex += capFace.vertexCount;
+        new_faces[newFaceIndex++] = capFace;
+    }
+
+    for (int i_vertex = 0; i_vertex < newVertexIndex; ++i_vertex)
+    {
+        current_vertices[i_vertex] = new_vertices[i_vertex];
+    }
+
+    for (int i_face = 0; i_face < newFaceIndex; ++i_face)
+    {
+        current_faces[i_face] = new_faces[i_face];
+    }
+    face_count = newFaceIndex;
+}
+
+void BuildCell(inout int face_count, float3 seed, float3 neighbourSeed)
+{
+    float3 vectorBetweenCenters = neighbourSeed - seed;
+    float magnitude = length(vectorBetweenCenters);
+    if (magnitude < EPSILON) return;
+
+    float3 normal = normalize(vectorBetweenCenters);
+    float3 middlePoint = (seed + neighbourSeed) * 0.5f;
+    float clippingPlaneOffsetFromOrigin = dot(normal, middlePoint);
+    ClipByPlane(
+        face_count, normal, clippingPlaneOffsetFromOrigin
+    );
+}
+
+void CreateBox(float3 center, float3 size)
+{
+    float3 h = size * 0.5f;
+
+    for (int i = 0; i < 6; ++i)
+    {
+        ConvexFace face;
+        face.vertexStart = 4 * i;
+        face.vertexCount = 4;
+        current_faces[i] = face;
+    }
+
+    current_vertices[0] = float3(-h.x, -h.y, -h.z) + center;
+    current_vertices[1] = float3(-h.x, -h.y, h.z) + center;
+    current_vertices[2] = float3(-h.x, h.y, h.z) + center;
+    current_vertices[3] = float3(-h.x, h.y, -h.z) + center;
+
+    current_vertices[4] = float3(h.x, -h.y, h.z) + center;
+    current_vertices[5] = float3(h.x, -h.y, -h.z) + center;
+    current_vertices[6] = float3(h.x, h.y, -h.z) + center;
+    current_vertices[7] = float3(h.x, h.y, h.z) + center;
+
+    current_vertices[8] = float3(-h.x, -h.y, -h.z) + center;
+    current_vertices[9] = float3(h.x, -h.y, -h.z) + center;
+    current_vertices[10] = float3(h.x, -h.y, h.z) + center;
+    current_vertices[11] = float3(-h.x, -h.y, h.z) + center;
+
+    current_vertices[12] = float3(-h.x, h.y, h.z) + center;
+    current_vertices[13] = float3(h.x, h.y, h.z) + center;
+    current_vertices[14] = float3(h.x, h.y, -h.z) + center;
+    current_vertices[15] = float3(-h.x, h.y, -h.z) + center;
+
+    current_vertices[16] = float3(h.x, -h.y, -h.z) + center;
+    current_vertices[17] = float3(-h.x, -h.y, -h.z) + center;
+    current_vertices[18] = float3(-h.x, h.y, -h.z) + center;
+    current_vertices[19] = float3(h.x, h.y, -h.z) + center;
+
+    current_vertices[20] = float3(-h.x, -h.y, h.z) + center;
+    current_vertices[21] = float3(h.x, -h.y, h.z) + center;
+    current_vertices[22] = float3(h.x, h.y, h.z) + center;
+    current_vertices[23] = float3(-h.x, h.y, h.z) + center;
+}
+
+[numthreads(1, 1, 1)]
+void BuildVoronoiCells3D(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= _CenterGridSize)) return;
+
+    int face_count = 6;
+
+    CreateBox(_WorldOrigin, _BoxSize);
+
+    for (int x = -1; x <= 1; x++)
+    {
+        for (int y = -1; y <= 1; y++)
+        {
+            for (int z = -1; z <= 1; z++)
+            {
+                if (x == 0 && y == 0 && z == 0) continue;
+                int3 offset = int3(x, y, z);
+                int3 neighbourIndex = id + offset;
+                if (!IsIndexInsideGrid(neighbourIndex, _CenterGridSize)) continue;
+                BuildCell(
+                    face_count, GetSeedPosition(id), GetSeedPosition(neighbourIndex)
+                );
+            }
+        }
+    }
+
+    int startIndex = id.x + id.y * _CenterGridSize.x + id.z * _CenterGridSize.x * _CenterGridSize.y;
+    int startIndexInVertices = startIndex * MAX_VERTICES;
+    int index = 0;
+    for (int i = 0; i < face_count; ++i)
+    {
+        ConvexFace face = current_faces[i];
+        for (uint j = 1; j < face.vertexCount - 1; ++j)
+        {
+            vertices[startIndexInVertices + index] = current_vertices[face.vertexStart + 0];
+            vertices[startIndexInVertices + index + 1] = current_vertices[face.vertexStart + j];
+            vertices[startIndexInVertices + index + 2] = current_vertices[face.vertexStart + j + 1];
+            index += 3;
+        }
+    }
+    VoronoiCell cell;
+    cell.vertexStart = startIndexInVertices;
+    cell.vertexCount = index;
+    cells[startIndex] = cell;
+}
