@@ -1,6 +1,7 @@
+using SebLague.MarchingCubes;
 using UnityEngine;
 
-namespace SebLague.MarchingCubes.PointsGenerators {
+namespace PrototUnity.PointsGenerators {
 	public class RenderCube : AbstractTextureGenerator {
 		[SerializeField] private ComputeShader computeShader;
 		[SerializeField] private float size;
@@ -12,7 +13,7 @@ namespace SebLague.MarchingCubes.PointsGenerators {
 		private static readonly int sizeID = Shader.PropertyToID("size");
 
 		private void CreateBuffers(int numPointsPerAxis) {
-			pointsTexture = Utils.CreateRenderCubeTexture(numPointsPerAxis, "pointsTexture");
+			pointsTexture = CreateRenderCubeTexture(numPointsPerAxis, "pointsTexture");
 		}
 
 		private void ReleaseBuffers() {

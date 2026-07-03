@@ -1,7 +1,6 @@
-using SebLague.MarchingCubes.PointsGenerators;
 using UnityEngine;
 
-namespace SebLague.MarchingCubes.TextureViewer {
+namespace PrototUnity.PointsGenerators.TextureViewer {
 	public class TextureViewer3D : MonoBehaviour {
 		[SerializeField] 
 		[Range(0, 1)] private float sliceDepth;

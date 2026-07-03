@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
+using PrototUnity.PointsGenerators;
 using PrototUnity.Utils;
-using SebLague.MarchingCubes.PointsGenerators;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Random = UnityEngine.Random;
