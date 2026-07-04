@@ -1,6 +1,9 @@
 Shader "Custom/VoronoiShader"
 {
-    Properties {}
+    Properties
+    {
+        _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
+    }
 
     SubShader
     {
@@ -37,78 +40,34 @@ Shader "Custom/VoronoiShader"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #define UNITY_INDIRECT_DRAW_ARGS IndirectDrawIndexedArgs
-            #include "UnityIndirect.cginc"
+            #include "VoronoiShaderUtils.hlsl"
 
-            struct VoronoiCell
-            {
-                uint vertexCount;
-                uint vertexStart;
-            };
-
-            StructuredBuffer<uint> idsToRender;
-            StructuredBuffer<VoronoiCell> cells;
-            StructuredBuffer<float3> vertices;
-            Texture3D colors;
-            float4 colorSize;
-
-            float3 GetVoxelPosition(float3 meshPositionOS, uint svInstanceID, uint vertexID)
-            {
-                uint instanceID = GetIndirectInstanceID(svInstanceID);
-                uint idOfCell = idsToRender[instanceID];
-                VoronoiCell cell = cells[idOfCell];
-                if (vertexID >= cell.vertexCount) return meshPositionOS;
-                return meshPositionOS + vertices[cell.vertexStart + vertexID];
-            }
-
-            float3 GetVoxelNormal(float3 normal, uint svInstanceID, uint vertexID)
-            {
-                uint instanceID = GetIndirectInstanceID(svInstanceID);
-                uint idOfCell = idsToRender[instanceID];
-                VoronoiCell cell = cells[idOfCell];
-                if (vertexID >= cell.vertexCount) return normal;
-
-                float3 v0, v1, v2;
-                if (vertexID % 3 == 0)
-                {
-                    v0 = vertices[cell.vertexStart + vertexID];
-                    v1 = vertices[cell.vertexStart + vertexID + 1];
-                    v2 = vertices[cell.vertexStart + vertexID + 2];
-                }
-                else if (vertexID % 3 == 1)
-                {
-                    v0 = vertices[cell.vertexStart + vertexID - 1];
-                    v1 = vertices[cell.vertexStart + vertexID];
-                    v2 = vertices[cell.vertexStart + vertexID + 1];
-                }
-                else if (vertexID % 3 == 2)
-                {
-                    v0 = vertices[cell.vertexStart + vertexID - 2];
-                    v1 = vertices[cell.vertexStart + vertexID - 1];
-                    v2 = vertices[cell.vertexStart + vertexID];
-                }
-
-                return normalize(cross(v2 - v0, v1 - v0));
-            }
-
-            Varyings vert(Attributes IN, uint svInstanceID : SV_InstanceID, uint id : SV_VertexID)
+            Varyings vert(Attributes input, uint svInstanceID : SV_InstanceID, uint vertexId : SV_VertexID)
             {
                 InitIndirectDrawArgs(0);
-                Varyings OUT;
+                Varyings output;
 
-                UNITY_SETUP_INSTANCE_ID(IN);
-                UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-                float3 positionWS = GetVoxelPosition(IN.positionOS.xyz, svInstanceID, id);
+                float3 positionWS = GetVoxelPosition(input.positionOS.xyz, svInstanceID, vertexId);
+                float3 normalWS = GetVoxelNormal(input.normalOS, svInstanceID, vertexId);
+                output.instanceID = GetIndirectInstanceID(svInstanceID);
 
-                OUT.positionWS = positionWS;
-                OUT.normalWS = normalize(GetVoxelNormal(IN.normalOS, svInstanceID, id));
-                OUT.positionCS = TransformWorldToHClip(positionWS);
-                OUT.uv = TRANSFORM_TEX(IN.texcoord, _BaseMap);
-                OUT.shadowCoord = TransformWorldToShadowCoord(positionWS);
-                OUT.instanceID = GetIndirectInstanceID(svInstanceID);
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(TransformWorldToObject(positionWS));
+                VertexNormalInputs normalInput = GetVertexNormalInputs(TransformWorldToObject(normalWS),
+                                                                       input.tangentOS);
+                output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
+                output.normalWS = normalInput.normalWS;
+                OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
+                    OUTPUT_SH4(vertexInput.positionWS, output.normalWS.xyz,
+                    GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, output.probeOcclusion);
+                output.positionWS = vertexInput.positionWS;
+                output.positionCS = vertexInput.positionCS;
+                output.shadowCoord = GetShadowCoord(vertexInput);
 
-                return OUT;
+                return output;
             }
 
             float4 GetColor(uint instanceID)
@@ -124,85 +83,77 @@ Shader "Custom/VoronoiShader"
 
             half4 frag(Varyings IN) : SV_Target
             {
-                half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * GetColor(IN.instanceID);
-                half3 normalWS = normalize(IN.normalWS);
-
-                // Ambient/environment lighting.
-                half3 litColor = SampleSH(normalWS);
-
-                // Main light, including shadow attenuation.
-                Light mainLight = GetMainLight(IN.shadowCoord);
-                half mainNdotL = saturate(dot(normalWS, mainLight.direction));
-                litColor += mainLight.color * mainNdotL * mainLight.shadowAttenuation;
-
-                return half4(baseColor.rgb * litColor, baseColor.a);
-                // return half4(1, 1, 1, 1);
+                half4 baseColor;
+                LitPassFragment(IN, baseColor);
+                return half4(baseColor.rgb * GetColor(IN.instanceID), baseColor.a);
+                // return half4(GetColor(IN.instanceID).rgb, 1);
             }
             ENDHLSL
         }
 
-//        Pass
-//        {
-//            Name "ShadowCaster"
-//            Tags
-//            {
-//                "LightMode" = "ShadowCaster"
-//            }
-//
-//            HLSLPROGRAM
-//            #pragma vertex vert
-//            #pragma fragment frag
-//            #pragma target 4.5
-//
-//            #pragma multi_compile_instancing
-//            #pragma instancing_options renderinglayer
-//
-//            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-//            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
-//            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
-//            #define UNITY_INDIRECT_DRAW_ARGS IndirectDrawIndexedArgs
-//            #include "UnityIndirect.cginc"
-//
-//            StructuredBuffer<float3> voxels;
-//            uniform float4x4 _ObjectToWorld;
-//            float3 _LightPosition;
-//
-//            float3 GetVoxelPosition(float3 meshPositionOS, uint svInstanceID)
-//            {
-//                uint instanceID = GetIndirectInstanceID(svInstanceID);
-//                return meshPositionOS + voxels[instanceID];
-//            }
-//            
-//            Varyings vert(Attributes IN, uint svInstanceID : SV_InstanceID)
-//            {
-//                InitIndirectDrawArgs(0);
-//                Varyings OUT;
-//                
-//                UNITY_SETUP_INSTANCE_ID(IN);
-//                UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
-//                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
-//
-//                float3 positionOS = GetVoxelPosition(IN.positionOS.xyz, svInstanceID);
-//                float3 positionWS = mul(_ObjectToWorld, float4(positionOS, 1.0)).xyz;
-//                float3 normalWS = normalize(mul((float3x3)_ObjectToWorld, IN.normalOS));
-//                float3 lightDirectionWS = normalize(_LightPosition - positionWS);
-//                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
-//
-//                #if UNITY_REVERSED_Z
-//                positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
-//                #else
-//                positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
-//                #endif
-//
-//                OUT.positionCS = positionCS;
-//                return OUT;
-//            }
-//
-//            half4 frag(Varyings IN) : SV_Target
-//            {
-//                return 0;
-//            }
-//            ENDHLSL
-//        }
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
+            
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 4.5
+
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+            #define UNITY_INDIRECT_DRAW_ARGS IndirectDrawIndexedArgs
+            #include "VoronoiShaderUtils.hlsl"
+            
+            float3 _LightPosition;
+            float3 _LightDirection;
+
+            float4 GetShadowPositionHClip(Attributes input, uint svInstanceID : SV_InstanceID, uint vertexId : SV_VertexID)
+            {
+                float3 positionWS = GetVoxelPosition(input.positionOS.xyz, svInstanceID, vertexId);
+                float3 normalWS = normalize(GetVoxelNormal(input.normalOS, svInstanceID, vertexId));
+
+                #if _CASTING_PUNCTUAL_LIGHT_SHADOW
+                float3 lightDirectionWS = normalize(_LightPosition - positionWS);
+                #else
+                float3 lightDirectionWS = _LightDirection;
+                #endif
+
+                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
+                positionCS = ApplyShadowClamping(positionCS);
+                return positionCS;
+            }
+
+
+            Varyings vert(Attributes input, uint svInstanceID : SV_InstanceID, uint vertexId : SV_VertexID)
+            {
+                Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+               
+                output.positionCS = GetShadowPositionHClip(input, svInstanceID, vertexId);
+                return output;
+            }
+
+            half4 frag(Varyings input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                return 0;
+            }
+            ENDHLSL
+        }
     }
 }
