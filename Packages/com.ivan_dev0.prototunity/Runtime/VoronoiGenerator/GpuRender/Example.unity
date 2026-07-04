@@ -347,15 +347,16 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 890536566}
-  - component: {fileID: 890536568}
+  - component: {fileID: 890536570}
   - component: {fileID: 890536569}
+  - component: {fileID: 890536568}
   m_Layer: 0
   m_Name: VoronoiGpuTest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &890536566
 Transform:
   m_ObjectHideFlags: 0
@@ -383,7 +384,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae083afb0d6e48fbaa2b14f3972dbe66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.VoronoiGenerator.GpuRender.VoronoiShaderTest
-  size: {x: 10, y: 10, z: 10}
+  voronoiGPURender: {fileID: 890536569}
+  voronoiGenerator: {fileID: 890536570}
+  renderAll: 1
+  ids: 
 --- !u!114 &890536569
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -396,10 +400,102 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2134b436b29c48a49d86a9cf994a4802, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.VoronoiGenerator.GpuRender.VoronoiGPURender
-  voronoiGenerator: {fileID: 890536568}
+  voronoiGenerator: {fileID: 890536570}
   voronoiMaterial: {fileID: 2100000, guid: 46caaa625c6c418d84c8a263d79d7f65, type: 2}
   boundSize: {x: 5, y: 5, z: 5}
-  count: {x: 10, y: 10, z: 10}
+--- !u!114 &890536570
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890536565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e24cdba7c3124e8da676ecad13ac81b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.VoronoiGenerator.GpuRender.VoronoiGeneratorTest
+  size: {x: 10, y: 10, z: 10}
+--- !u!1 &1598548720
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1598548723}
+  - component: {fileID: 1598548722}
+  - component: {fileID: 1598548721}
+  - component: {fileID: 1598548724}
+  m_Layer: 0
+  m_Name: VoronoiGpuTest_wiht_real_data
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1598548721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1598548720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2134b436b29c48a49d86a9cf994a4802, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.VoronoiGenerator.GpuRender.VoronoiGPURender
+  voronoiGenerator: {fileID: 1598548722}
+  voronoiMaterial: {fileID: 2100000, guid: 46caaa625c6c418d84c8a263d79d7f65, type: 2}
+  boundSize: {x: 5, y: 5, z: 5}
+--- !u!114 &1598548722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1598548720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3d88b3815d54506b1b5976a9c013462, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.VoronoiGenerator.VoronoiComputeGenerator
+  size: {x: 3, y: 3, z: 3}
+  voronoiShader: {fileID: 7200000, guid: eb4d8e03f9d454924b8fd85fdcb31670, type: 3}
+  boundSize: {x: 5, y: 5, z: 5}
+--- !u!4 &1598548723
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1598548720}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1598548724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1598548720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae083afb0d6e48fbaa2b14f3972dbe66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.VoronoiGenerator.GpuRender.VoronoiShaderTest
+  voronoiGPURender: {fileID: 1598548721}
+  voronoiGenerator: {fileID: 1598548722}
+  renderAll: 1
+  ids: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -407,3 +503,4 @@ SceneRoots:
   - {fileID: 295703543}
   - {fileID: 6813191}
   - {fileID: 890536566}
+  - {fileID: 1598548723}

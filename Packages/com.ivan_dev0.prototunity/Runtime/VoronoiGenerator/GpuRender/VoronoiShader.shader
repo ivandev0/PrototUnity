@@ -1,10 +1,6 @@
 Shader "Custom/VoronoiShader"
 {
-    Properties
-    {
-        [MainColor] _BaseColor("Base Color", Color) = (1, 1, 1, 1)
-        [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
-    }
+    Properties {}
 
     SubShader
     {
@@ -33,7 +29,7 @@ Shader "Custom/VoronoiShader"
             #pragma instancing_options renderinglayer
             #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
             #define UNITY_VERTEX_INPUT_INSTANCE_ID uint instanceID : SV_InstanceID;
-            
+
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
 
@@ -48,7 +44,8 @@ Shader "Custom/VoronoiShader"
                 uint vertexCount;
                 uint vertexStart;
             };
-            
+
+            StructuredBuffer<uint> idsToRender;
             StructuredBuffer<VoronoiCell> cells;
             StructuredBuffer<float3> vertices;
             Texture3D colors;
@@ -57,15 +54,17 @@ Shader "Custom/VoronoiShader"
             float3 GetVoxelPosition(float3 meshPositionOS, uint svInstanceID, uint vertexID)
             {
                 uint instanceID = GetIndirectInstanceID(svInstanceID);
-                VoronoiCell cell = cells[instanceID];
+                uint idOfCell = idsToRender[instanceID];
+                VoronoiCell cell = cells[idOfCell];
                 if (vertexID >= cell.vertexCount) return meshPositionOS;
                 return meshPositionOS + vertices[cell.vertexStart + vertexID];
             }
-            
+
             float3 GetVoxelNormal(float3 normal, uint svInstanceID, uint vertexID)
             {
                 uint instanceID = GetIndirectInstanceID(svInstanceID);
-                VoronoiCell cell = cells[instanceID];
+                uint idOfCell = idsToRender[instanceID];
+                VoronoiCell cell = cells[idOfCell];
                 if (vertexID >= cell.vertexCount) return normal;
 
                 float3 v0, v1, v2;
@@ -87,7 +86,7 @@ Shader "Custom/VoronoiShader"
                     v1 = vertices[cell.vertexStart + vertexID - 1];
                     v2 = vertices[cell.vertexStart + vertexID];
                 }
-                
+
                 return normalize(cross(v2 - v0, v1 - v0));
             }
 
@@ -111,30 +110,31 @@ Shader "Custom/VoronoiShader"
 
                 return OUT;
             }
-            
+
             float4 GetColor(uint instanceID)
             {
+                uint idOfCell = idsToRender[instanceID];
                 uint width = colorSize.x, height = colorSize.y;
-                int x = instanceID % width;
-                int y = (instanceID / width) % height;
-                int z = instanceID / (width * height);
+                int x = idOfCell % width;
+                int y = (idOfCell / width) % height;
+                int z = idOfCell / (width * height);
                 half4 color = colors.Load(int4(x, y, z, 0));
-                return color;  
+                return color;
             }
 
             half4 frag(Varyings IN) : SV_Target
             {
                 half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv) * GetColor(IN.instanceID);
                 half3 normalWS = normalize(IN.normalWS);
-                
+
                 // Ambient/environment lighting.
                 half3 litColor = SampleSH(normalWS);
-                
+
                 // Main light, including shadow attenuation.
                 Light mainLight = GetMainLight(IN.shadowCoord);
                 half mainNdotL = saturate(dot(normalWS, mainLight.direction));
                 litColor += mainLight.color * mainNdotL * mainLight.shadowAttenuation;
-                
+
                 return half4(baseColor.rgb * litColor, baseColor.a);
                 // return half4(1, 1, 1, 1);
             }

@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -8,13 +9,24 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 		[SerializeField] private Vector3 boundSize;
 
 		private Mesh mesh;
-		private ComputeBuffer idBuffer;
+		private uint amountToRender;
 
+		private static readonly int idsId = Shader.PropertyToID("idsToRender");
 		private static readonly int cellsID = Shader.PropertyToID("cells");
 		private static readonly int verticesID = Shader.PropertyToID("vertices");
 		private static readonly int colorsID = Shader.PropertyToID("colors");
 		private static readonly int colorSizeID = Shader.PropertyToID("colorSize");
 
+		public void SetSpecificIdsToRender([CanBeNull] ComputeBuffer ids) {
+			if (ids == null) {
+				amountToRender = 0;
+				return;
+			}
+			
+			voronoiMaterial.SetBuffer(idsId, ids);
+			amountToRender = (uint)ids.count;
+		}
+		
 		private void Start() {
 			GenerateMesh();
 
@@ -23,7 +35,7 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 		}
 
 		private void Update() {
-			Show(voronoiGenerator.size);
+			Show();
 		}
 
 		private void SetUpMaterial(Vector3Int size, ComputeBuffer voronoiCellBuffer, ComputeBuffer voronoiVertexBuffer) {
@@ -53,7 +65,8 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 			mesh.SetTriangles(triangles, 0);
 		}
 
-		private void Show(Vector3Int size) {
+		private void Show() {
+			if (amountToRender <= 0) return;
 			var rp = new RenderParams(voronoiMaterial) {
 				worldBounds = new Bounds(Vector3.zero, boundSize * 1.1f),
 				shadowCastingMode = ShadowCastingMode.On,
@@ -68,7 +81,7 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 			);
 			var commandData = new GraphicsBuffer.IndirectDrawIndexedArgs[commandCount];
 			commandData[0].indexCountPerInstance = mesh.GetIndexCount(0);
-			commandData[0].instanceCount = (uint)(size.x * size.y * size.z);
+			commandData[0].instanceCount = amountToRender;
 			commandBuf.SetData(commandData);
 			Graphics.RenderMeshIndirect(rp, mesh, commandBuf, commandCount);
 		}

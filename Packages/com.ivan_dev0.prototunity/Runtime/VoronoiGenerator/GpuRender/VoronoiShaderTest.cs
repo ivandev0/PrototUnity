@@ -1,72 +1,35 @@
-using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace PrototUnity.VoronoiGenerator.GpuRender {
-	public class VoronoiShaderTest : AbstractVoronoiComputeGenerator {
-		public override void Generate() {
-			var cells = new VoronoiCell[size.x * size.y * size.z];
-			VoronoiCellsBuffer = new ComputeBuffer(cells.Length,
-				Marshal.SizeOf(typeof(VoronoiCell)), ComputeBufferType.Structured);
+	public class VoronoiShaderTest : MonoBehaviour {
+		[SerializeField] private VoronoiGPURender voronoiGPURender;
+		[SerializeField] private AbstractVoronoiComputeGenerator voronoiGenerator;
 
-			for (uint i = 0; i < cells.Length; i++) {
-				cells[i] = new VoronoiCell {
-					vertexCount = 36,
-					vertexStart = 36 * i
-				};
-			}
+		[SerializeField] private bool renderAll = true;
+		[SerializeField] private int[] ids;
 
-			VoronoiCellsBuffer.SetData(cells);
+		[CanBeNull] private ComputeBuffer buffer;
+		
+		private void Update() {
+			buffer?.Release();
 
-			var vertices = new Vector3[36 * cells.Length];
-			VoronoiVerticesBuffer = new ComputeBuffer(
-				vertices.Length, Marshal.SizeOf(typeof(Vector3)), ComputeBufferType.Structured
-			);
-
-			for (var i = 0; i < size.x; i++) {
-				for (var j = 0; j < size.y; j++) {
-					for (var k = 0; k < size.z; k++) {
-						var cube = CreateVertices(new Vector3(i, j, k));
-						cube.CopyTo(vertices, (k + i * size.z + j * size.z * size.y) * 36);
-					}
+			if (renderAll) {
+				var size = voronoiGenerator.size.x * voronoiGenerator.size.y * voronoiGenerator.size.z;
+				buffer = new ComputeBuffer(size, sizeof(int), ComputeBufferType.Structured);
+				var allIds = new int[size];
+				for (var i = 0; i < size; i++) {
+					allIds[i] = i;
 				}
+				buffer.SetData(allIds);
+				voronoiGPURender.SetSpecificIdsToRender(buffer);
+			} else if (ids.Length == 0) {
+				voronoiGPURender.SetSpecificIdsToRender(null);
+			} else {
+				buffer = new ComputeBuffer(ids.Length, sizeof(int));
+				buffer.SetData(ids);
+				voronoiGPURender.SetSpecificIdsToRender(buffer);
 			}
-
-			VoronoiVerticesBuffer.SetData(vertices);
-		}
-
-		private static Vector3[] CreateVertices(Vector3 offset) {
-			var h = 0.5f;
-			Vector3[] vertices = {
-				// Front face
-				new(-h, -h, h), new(h, -h, h), new(h, h, h),
-				new(-h, -h, h), new(h, h, h), new(-h, h, h),
-
-				// Back face
-				new(h, -h, -h), new(-h, -h, -h), new(-h, h, -h),
-				new(h, -h, -h), new(-h, h, -h), new(h, h, -h),
-
-				// Left face
-				new(-h, -h, -h), new(-h, -h, h), new(-h, h, h),
-				new(-h, -h, -h), new(-h, h, h), new(-h, h, -h),
-
-				// Right face
-				new(h, -h, h), new(h, -h, -h), new(h, h, -h),
-				new(h, -h, h), new(h, h, -h), new(h, h, h),
-
-				// Top face
-				new(-h, h, h), new(h, h, h), new(h, h, -h),
-				new(-h, h, h), new(h, h, -h), new(-h, h, -h),
-
-				// Bottom face
-				new(-h, -h, -h), new(h, -h, -h), new(h, -h, h),
-				new(-h, -h, -h), new(h, -h, h), new(-h, -h, h),
-			};
-			
-			for (var i = 0; i < vertices.Length; i++) {
-				vertices[i] += offset;
-			}
-
-			return vertices;
 		}
 	}
 }
