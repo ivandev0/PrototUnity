@@ -383,8 +383,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3d88b3815d54506b1b5976a9c013462, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.VoronoiGenerator.VoronoiComputeGenerator
+  size: {x: 3, y: 3, z: 3}
   voronoiShader: {fileID: 7200000, guid: eb4d8e03f9d454924b8fd85fdcb31670, type: 3}
-  voronoiSize: {x: 3, y: 3, z: 3}
   boundSize: {x: 5, y: 5, z: 5}
 --- !u!114 &890536568
 MonoBehaviour:

@@ -7,7 +7,6 @@ using UnityEngine.Experimental.Rendering;
 namespace PrototUnity.VoronoiGenerator {
 	public class VoronoiComputeGenerator : AbstractVoronoiComputeGenerator {
 		[SerializeField] private ComputeShader voronoiShader;
-		[SerializeField] private Vector3Int voronoiSize = Vector3Int.one;
 		[SerializeField] private Vector3 boundSize = Vector3.one;
 
 		private static readonly int centerGridSizeID = Shader.PropertyToID("_CenterGridSize");
@@ -31,27 +30,19 @@ namespace PrototUnity.VoronoiGenerator {
 				return;
 			}
 
-			if (voronoiSize.x <= 0 || voronoiSize.y <= 0 || voronoiSize.z <= 0) {
-				Debug.LogError($"Voronoi size must be positive. Current value: {voronoiSize}", this);
+			if (size.x <= 0 || size.y <= 0 || size.z <= 0) {
+				Debug.LogError($"Voronoi size must be positive. Current value: {size}", this);
 				return;
 			}
 
-			DispatchVoronoi(voronoiSize);
+			DispatchVoronoi();
 		}
 
 		public override (ComputeBuffer cells, ComputeBuffer vertices) GetGeneratedData() {
 			return (voronoiCellsBuffer, voronoiVerticesBuffer);
 		}
 
-		// public override (VoronoiCell[], Vector3[]) GetGeneratedData() {
-		// 	var cells = new VoronoiCell[voronoiCellsBuffer.count];
-		// 	var vertices = new Vector3[voronoiVerticesBuffer.count];
-		// 	voronoiCellsBuffer.GetData(cells);
-		// 	voronoiVerticesBuffer.GetData(vertices);
-		// 	return (cells, vertices);
-		// }
-
-		private void DispatchVoronoi(Vector3Int size) {
+		private void DispatchVoronoi() {
 			ReleaseBuffers();
 
 			var numCells = size.x * size.y * size.z;

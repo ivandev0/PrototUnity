@@ -3,8 +3,6 @@ using UnityEngine;
 
 namespace PrototUnity.VoronoiGenerator.GpuRender {
 	public class VoronoiShaderTest : AbstractVoronoiComputeGenerator {
-		[SerializeField] private Vector3Int size = new Vector3Int(10, 10, 10);
-
 		private ComputeBuffer voronoiCellBuffer;
 		private ComputeBuffer voronoiVertexBuffer;
 

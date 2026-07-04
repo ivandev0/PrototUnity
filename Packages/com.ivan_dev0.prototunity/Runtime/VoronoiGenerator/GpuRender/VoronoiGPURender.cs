@@ -6,7 +6,6 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 		[SerializeField] private AbstractVoronoiComputeGenerator voronoiGenerator;
 		[SerializeField] private Material voronoiMaterial;
 		[SerializeField] private Vector3 boundSize;
-		[SerializeField] private Vector3Int count = new Vector3Int(10, 10, 10);
 
 		private Mesh mesh;
 		private ComputeBuffer idBuffer;
@@ -21,11 +20,11 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 
 			voronoiGenerator.Generate();
 			var (cellsBuffer, verticesBuffer) = voronoiGenerator.GetGeneratedData();
-			SetUpMaterial(count, cellsBuffer, verticesBuffer);
+			SetUpMaterial(voronoiGenerator.size, cellsBuffer, verticesBuffer);
 		}
 
 		private void Update() {
-			Show(count);
+			Show(voronoiGenerator.size);
 		}
 
 		private void SetUpMaterial(Vector3Int size, ComputeBuffer voronoiCellBuffer, ComputeBuffer voronoiVertexBuffer) {
