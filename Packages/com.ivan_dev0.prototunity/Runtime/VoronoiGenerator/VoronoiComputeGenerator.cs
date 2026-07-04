@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
 namespace PrototUnity.VoronoiGenerator {
-	public class VoronoiComputeGenerator : MonoBehaviour {
+	public class VoronoiComputeGenerator : AbstractVoronoiComputeGenerator {
 		[SerializeField] private ComputeShader voronoiShader;
 		[SerializeField] private Vector3Int voronoiSize = Vector3Int.one;
 		[SerializeField] private Vector3 boundSize = Vector3.one;
@@ -17,11 +17,6 @@ namespace PrototUnity.VoronoiGenerator {
 		private static readonly int cellsID = Shader.PropertyToID("cells");
 		private static readonly int verticesID = Shader.PropertyToID("vertices");
 		
-		public struct VoronoiCell {
-			public uint vertexCount;
-			public uint vertexStart;
-		}
-		
 		private ComputeBuffer voronoiCellsBuffer;
 		private ComputeBuffer voronoiVerticesBuffer;
 		private Texture3D seedTexture;
@@ -30,7 +25,7 @@ namespace PrototUnity.VoronoiGenerator {
 			Generate();
 		}
 
-		public void Generate() {
+		public override void Generate() {
 			if (voronoiShader == null) {
 				Debug.LogError("Voronoi compute shader is not assigned.", this);
 				return;
@@ -44,13 +39,17 @@ namespace PrototUnity.VoronoiGenerator {
 			DispatchVoronoi(voronoiSize);
 		}
 
-		public (VoronoiCell[], Vector3[]) GetGeneratedData() {
-			var cells = new VoronoiCell[voronoiCellsBuffer.count];
-			var vertices = new Vector3[voronoiVerticesBuffer.count];
-			voronoiCellsBuffer.GetData(cells);
-			voronoiVerticesBuffer.GetData(vertices);
-			return (cells, vertices);
+		public override (ComputeBuffer cells, ComputeBuffer vertices) GetGeneratedData() {
+			return (voronoiCellsBuffer, voronoiVerticesBuffer);
 		}
+
+		// public override (VoronoiCell[], Vector3[]) GetGeneratedData() {
+		// 	var cells = new VoronoiCell[voronoiCellsBuffer.count];
+		// 	var vertices = new Vector3[voronoiVerticesBuffer.count];
+		// 	voronoiCellsBuffer.GetData(cells);
+		// 	voronoiVerticesBuffer.GetData(vertices);
+		// 	return (cells, vertices);
+		// }
 
 		private void DispatchVoronoi(Vector3Int size) {
 			ReleaseBuffers();

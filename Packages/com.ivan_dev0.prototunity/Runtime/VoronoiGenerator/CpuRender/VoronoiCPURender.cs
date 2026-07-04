@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace PrototUnity.VoronoiGenerator.CpuRender {
 	public class VoronoiCPURender : MonoBehaviour {
-		[SerializeField] private VoronoiComputeGenerator voronoiGenerator;
+		[SerializeField] private AbstractVoronoiComputeGenerator voronoiGenerator;
 
 		private const string generatedCellPrefix = "VoronoiCell_";
 
@@ -16,11 +16,22 @@ namespace PrototUnity.VoronoiGenerator.CpuRender {
 		public void Generate() {
 			ClearGeneratedCells();
 			voronoiGenerator.Generate();
-			var (cells, vertices) = voronoiGenerator.GetGeneratedData();
+			var (cellsBuffer, verticesBuffer) = voronoiGenerator.GetGeneratedData();
+			var (cells, vertices) = FillArrays(cellsBuffer, verticesBuffer);
 			BuildMeshesFromComputeData(cells, vertices);
 		}
 		
-		private void BuildMeshesFromComputeData(VoronoiComputeGenerator.VoronoiCell[] cells, Vector3[] vertices) {
+		private (AbstractVoronoiComputeGenerator.VoronoiCell[], Vector3[]) FillArrays(
+			ComputeBuffer voronoiCellsBuffer, ComputeBuffer voronoiVerticesBuffer
+		) {
+			var cells = new AbstractVoronoiComputeGenerator.VoronoiCell[voronoiCellsBuffer.count];
+			var vertices = new Vector3[voronoiVerticesBuffer.count];
+			voronoiCellsBuffer.GetData(cells);
+			voronoiVerticesBuffer.GetData(vertices);
+			return (cells, vertices);
+		}
+		
+		private void BuildMeshesFromComputeData(AbstractVoronoiComputeGenerator.VoronoiCell[] cells, Vector3[] vertices) {
 			ClearGeneratedCells();
 			var generatedMaterial = GenerateMaterial();
 			
@@ -43,7 +54,7 @@ namespace PrototUnity.VoronoiGenerator.CpuRender {
 			}
 		}
 
-		private static Mesh BuildCellMesh(int index, VoronoiComputeGenerator.VoronoiCell cell, IReadOnlyList<Vector3> sourceVertices) {
+		private static Mesh BuildCellMesh(int index, AbstractVoronoiComputeGenerator.VoronoiCell cell, IReadOnlyList<Vector3> sourceVertices) {
 			if (cell.vertexCount < 3) return null;
 
 			var vertices = new List<Vector3>((int) cell.vertexCount);
