@@ -16,8 +16,7 @@ namespace PrototUnity.VoronoiGenerator.CpuRender {
 		public void Generate() {
 			ClearGeneratedCells();
 			voronoiGenerator.Generate();
-			var (cellsBuffer, verticesBuffer) = voronoiGenerator.GetGeneratedData();
-			var (cells, vertices) = FillArrays(cellsBuffer, verticesBuffer);
+			var (cells, vertices) = FillArrays(voronoiGenerator.VoronoiCellsBuffer, voronoiGenerator.VoronoiVerticesBuffer);
 			BuildMeshesFromComputeData(cells, vertices);
 		}
 		

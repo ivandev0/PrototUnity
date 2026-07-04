@@ -3,12 +3,9 @@ using UnityEngine;
 
 namespace PrototUnity.VoronoiGenerator.GpuRender {
 	public class VoronoiShaderTest : AbstractVoronoiComputeGenerator {
-		private ComputeBuffer voronoiCellBuffer;
-		private ComputeBuffer voronoiVertexBuffer;
-
 		public override void Generate() {
 			var cells = new VoronoiCell[size.x * size.y * size.z];
-			voronoiCellBuffer = new ComputeBuffer(cells.Length,
+			VoronoiCellsBuffer = new ComputeBuffer(cells.Length,
 				Marshal.SizeOf(typeof(VoronoiCell)), ComputeBufferType.Structured);
 
 			for (uint i = 0; i < cells.Length; i++) {
@@ -18,10 +15,10 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 				};
 			}
 
-			voronoiCellBuffer.SetData(cells);
+			VoronoiCellsBuffer.SetData(cells);
 
 			var vertices = new Vector3[36 * cells.Length];
-			voronoiVertexBuffer = new ComputeBuffer(
+			VoronoiVerticesBuffer = new ComputeBuffer(
 				vertices.Length, Marshal.SizeOf(typeof(Vector3)), ComputeBufferType.Structured
 			);
 
@@ -34,11 +31,7 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 				}
 			}
 
-			voronoiVertexBuffer.SetData(vertices);
-		}
-
-		public override (ComputeBuffer cells, ComputeBuffer vertices) GetGeneratedData() {
-			return (voronoiCellBuffer, voronoiVertexBuffer);
+			VoronoiVerticesBuffer.SetData(vertices);
 		}
 
 		private static Vector3[] CreateVertices(Vector3 offset) {

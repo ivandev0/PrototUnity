@@ -16,8 +16,6 @@ namespace PrototUnity.VoronoiGenerator {
 		private static readonly int cellsID = Shader.PropertyToID("cells");
 		private static readonly int verticesID = Shader.PropertyToID("vertices");
 		
-		private ComputeBuffer voronoiCellsBuffer;
-		private ComputeBuffer voronoiVerticesBuffer;
 		private Texture3D seedTexture;
 
 		private void Start() {
@@ -38,10 +36,6 @@ namespace PrototUnity.VoronoiGenerator {
 			DispatchVoronoi();
 		}
 
-		public override (ComputeBuffer cells, ComputeBuffer vertices) GetGeneratedData() {
-			return (voronoiCellsBuffer, voronoiVerticesBuffer);
-		}
-
 		private void DispatchVoronoi() {
 			ReleaseBuffers();
 
@@ -49,15 +43,15 @@ namespace PrototUnity.VoronoiGenerator {
 			seedTexture = GenerateSeedTexture(size, boundSize);
 
 			var kernel = voronoiShader.FindKernel("BuildVoronoiCells3D");
-			voronoiCellsBuffer = new ComputeBuffer(numCells, Marshal.SizeOf<VoronoiCell>(), ComputeBufferType.Structured);
-			voronoiVerticesBuffer = new ComputeBuffer(numCells * 255, Marshal.SizeOf<Vector3>(), ComputeBufferType.Structured);
+			VoronoiCellsBuffer = new ComputeBuffer(numCells, Marshal.SizeOf<VoronoiCell>(), ComputeBufferType.Structured);
+			VoronoiVerticesBuffer = new ComputeBuffer(numCells * 255, Marshal.SizeOf<Vector3>(), ComputeBufferType.Structured);
 
 			voronoiShader.SetInts(centerGridSizeID, size.x, size.y, size.z);
 			voronoiShader.SetFloats(worldOriginID, 0, 0, 0);
 			voronoiShader.SetFloats(boxSizeID, boundSize.x, boundSize.y, boundSize.z);
 			voronoiShader.SetTexture(kernel, centersID, seedTexture);
-			voronoiShader.SetBuffer(kernel, cellsID, voronoiCellsBuffer);
-			voronoiShader.SetBuffer(kernel, verticesID, voronoiVerticesBuffer);
+			voronoiShader.SetBuffer(kernel, cellsID, VoronoiCellsBuffer);
+			voronoiShader.SetBuffer(kernel, verticesID, VoronoiVerticesBuffer);
 
 			ComputeHelper.Dispatch(voronoiShader, size.x, size.y, size.z);
 		}
@@ -93,29 +87,11 @@ namespace PrototUnity.VoronoiGenerator {
 			return texture;
 		}
 
-		private void ReleaseBuffers() {
-			if (voronoiCellsBuffer != null) {
-				voronoiCellsBuffer.Release();
-				voronoiCellsBuffer = null;
-			}
-
-			if (voronoiVerticesBuffer != null) {
-				voronoiVerticesBuffer.Release();
-				voronoiVerticesBuffer = null;
-			}
-
+		protected override void ReleaseBuffers() {
 			if (seedTexture != null) {
 				DestroyTexture(seedTexture);
 				seedTexture = null;
 			}
-		}
-
-		private void OnDestroy() {
-			ReleaseBuffers();
-		}
-
-		private void OnDisable() {
-			ReleaseBuffers();
 		}
 
 		private static void DestroyTexture(Texture target) {

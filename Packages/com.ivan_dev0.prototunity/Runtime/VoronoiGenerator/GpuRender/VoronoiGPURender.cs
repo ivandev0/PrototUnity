@@ -19,8 +19,7 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 			GenerateMesh();
 
 			voronoiGenerator.Generate();
-			var (cellsBuffer, verticesBuffer) = voronoiGenerator.GetGeneratedData();
-			SetUpMaterial(voronoiGenerator.size, cellsBuffer, verticesBuffer);
+			SetUpMaterial(voronoiGenerator.size, voronoiGenerator.VoronoiCellsBuffer, voronoiGenerator.VoronoiVerticesBuffer);
 		}
 
 		private void Update() {
