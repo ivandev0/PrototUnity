@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using PrototUnity.AiTools.Voronoi;
+using SebLague.MarchingCubes;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-namespace SebLague.MarchingCubes {
+namespace PrototUnity.VoronoiGenerator {
 	public class VoronoiComputeGenerator : MonoBehaviour {
 		private const string GeneratedCellPrefix = "VoronoiCell_";
 

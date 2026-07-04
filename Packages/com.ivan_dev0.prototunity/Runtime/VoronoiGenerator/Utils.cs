@@ -1,24 +1,7 @@
 using UnityEngine;
 
-namespace SebLague.MarchingCubes {
+namespace PrototUnity.VoronoiGenerator {
 	public static class Utils {
-		public static RenderTexture CreateRenderCubeTexture(int size, string name = "texture3D") {
-			const int numBitsInDepthBuffer = 0;
-			var texture = new RenderTexture(size, size, numBitsInDepthBuffer) {
-				volumeDepth = size,
-				dimension = UnityEngine.Rendering.TextureDimension.Tex3D,
-				enableRandomWrite = true,
-				graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat,
-				wrapMode = TextureWrapMode.Repeat,
-				filterMode = FilterMode.Bilinear,
-				name = name
-			};
-
-			texture.Create();
-
-			return texture;
-		}
-		
 		public static Texture3D CreateRandomColors(int seed, int width, int height, int depth) {
 			Random.InitState(seed);
 			var colors = new Color[width * height * depth];

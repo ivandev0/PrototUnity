@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using PrototUnity.VoronoiGenerator;
 using UnityEngine;
 using UnityEngine.Rendering;
 
