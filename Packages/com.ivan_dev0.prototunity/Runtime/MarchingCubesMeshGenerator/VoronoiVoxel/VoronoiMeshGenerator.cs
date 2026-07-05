@@ -35,6 +35,13 @@ namespace PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel {
 		private static readonly int verticesID = Shader.PropertyToID("vertices");
 		private static readonly int idsToRenderID = Shader.PropertyToID("idsToRender");
 
+		private void Start() {
+			var voronoiCount = voronoiGenerator.size.x * voronoiGenerator.size.y * voronoiGenerator.size.z;
+			if (voronoiCount != NumVoxels) {
+				Debug.LogError($"Voronoi generator size {voronoiCount} does not match voxels amount from point generator {NumVoxels}");
+			}
+		}
+
 		public override void BeforePointGeneration() {
 			meshCollider = GetComponent<MeshCollider>();
 			voronoiGenerator.Generate();
