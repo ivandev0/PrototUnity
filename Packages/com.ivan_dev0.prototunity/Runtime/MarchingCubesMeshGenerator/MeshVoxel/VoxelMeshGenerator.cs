@@ -11,6 +11,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		[SerializeField] private Mesh voxelMesh;
 		
 		private struct Voxel {
+			private uint id;
 			private Vector3 position;
 		}
 

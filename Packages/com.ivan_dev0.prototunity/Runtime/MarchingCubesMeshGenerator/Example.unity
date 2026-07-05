@@ -338,6 +338,112 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &1642334223
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1642334225}
+  - component: {fileID: 1642334224}
+  - component: {fileID: 1642334228}
+  - component: {fileID: 1642334227}
+  - component: {fileID: 1642334226}
+  m_Layer: 0
+  m_Name: VoronoiGeneratorMeshTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1642334224
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642334223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c87d34f814a45deb0512d3e9ce18756, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.RenderSphere
+  numPointsPerAxis: 40
+  computeShader: {fileID: 7200000, guid: 37f8ac8d0adfb40d880f846ec63b5aee, type: 3}
+  radius: 20
+--- !u!4 &1642334225
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642334223}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &1642334226
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642334223}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
+--- !u!114 &1642334227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642334223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 209a735260f841069ff17c7d94e46cd3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel.VoronoiMeshGenerator
+  textureGenerator: {fileID: 1642334224}
+  boundSize: {x: 5, y: 5, z: 5}
+  editShader: {fileID: 7200000, guid: f3120fb0b0354e09abeb6a6b5ec7d848, type: 3}
+  triangleShader: {fileID: 7200000, guid: aea4dc0a28cfd453faa9de6188f01665, type: 3}
+  voxelShader: {fileID: 7200000, guid: a55911b9b5004b8595b531b9b41a1489, type: 3}
+  voronoiShader: {fileID: 7200000, guid: eb4d8e03f9d454924b8fd85fdcb31670, type: 3}
+  voronoiMaterial: {fileID: 2100000, guid: 46caaa625c6c418d84c8a263d79d7f65, type: 2}
+--- !u!114 &1642334228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642334223}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce1d793e91304199b790bccbc53836d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.PointsGenerators.RenderCube
+  numPointsPerAxis: 40
+  computeShader: {fileID: 7200000, guid: f2d895955f0a493ebea624070f8b573b, type: 3}
+  size: 10
 --- !u!1 &1655344320
 GameObject:
   m_ObjectHideFlags: 0
@@ -358,7 +464,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1655344321
 Transform:
   m_ObjectHideFlags: 0
@@ -513,7 +619,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d5fa380b1914721a65e558a531bb209, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.Terraformer
-  meshGenerator: {fileID: 1655344322}
+  meshGenerator: {fileID: 1642334227}
   terrainMask:
     serializedVersion: 2
     m_Bits: 1
@@ -649,3 +755,4 @@ SceneRoots:
   - {fileID: 1655344321}
   - {fileID: 2120854191}
   - {fileID: 1785859111}
+  - {fileID: 1642334225}

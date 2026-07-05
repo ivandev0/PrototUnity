@@ -2,6 +2,7 @@
 
 struct Voxel
 {
+    uint id;
     float3 position;
 };
 
@@ -59,6 +60,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     if (isInsideMesh(id)) return;
 
     Voxel voxel;
+    voxel.id = id.x + id.y * numPointsPerAxis + id.z * numPointsPerAxis * numPointsPerAxis;
     voxel.position = coordToWorld(id);
     voxels.Append(voxel);
 }

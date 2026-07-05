@@ -5,8 +5,14 @@ struct VoronoiCell
     uint vertexCount;
     uint vertexStart;
 };
-            
-StructuredBuffer<uint> idsToRender;
+
+struct Voxel
+{
+    uint id;
+    float3 position;
+};
+
+StructuredBuffer<Voxel> idsToRender;
 StructuredBuffer<VoronoiCell> cells;
 StructuredBuffer<float3> vertices;
 Texture3D colors;
@@ -15,7 +21,7 @@ float4 colorSize;
 float3 GetVoxelPosition(float3 meshPositionOS, uint svInstanceID, uint vertexID)
 {
     uint instanceID = GetIndirectInstanceID(svInstanceID);
-    uint idOfCell = idsToRender[instanceID];
+    uint idOfCell = idsToRender[instanceID].id;
     VoronoiCell cell = cells[idOfCell];
     if (vertexID >= cell.vertexCount) return meshPositionOS;
     return meshPositionOS + vertices[cell.vertexStart + vertexID];
@@ -24,7 +30,7 @@ float3 GetVoxelPosition(float3 meshPositionOS, uint svInstanceID, uint vertexID)
 float3 GetVoxelNormal(float3 normal, uint svInstanceID, uint vertexID)
 {
     uint instanceID = GetIndirectInstanceID(svInstanceID);
-    uint idOfCell = idsToRender[instanceID];
+    uint idOfCell = idsToRender[instanceID].id;
     VoronoiCell cell = cells[idOfCell];
     if (vertexID >= cell.vertexCount) return normal;
 

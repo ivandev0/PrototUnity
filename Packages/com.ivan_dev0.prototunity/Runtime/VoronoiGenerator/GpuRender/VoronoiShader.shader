@@ -72,7 +72,7 @@ Shader "Custom/VoronoiShader"
 
             float4 GetColor(uint instanceID)
             {
-                uint idOfCell = idsToRender[instanceID];
+                uint idOfCell = idsToRender[instanceID].id;
                 uint width = colorSize.x, height = colorSize.y;
                 int x = idOfCell % width;
                 int y = (idOfCell / width) % height;
