@@ -1,6 +1,4 @@
-using System;
 using System.Runtime.InteropServices;
-using PrototUnity.PointsGenerators;
 using PrototUnity.Utils;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -9,27 +7,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.RegularMesh {
 	[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 	public class RegularMeshGenerator : AbstractMeshGenerator {
 		[SerializeField] private ComputeShader triangleShader;
-		
-		private struct Triangle {
-			private Vector3 vertexC;
-			private Vector3 vertexB;
-			private Vector3 vertexA;
 
-			public Vector3 this[int i]
-			{
-				get
-				{
-					return i switch {
-						0 => vertexA,
-						1 => vertexB,
-						2 => vertexC,
-						_ => throw new ArgumentOutOfRangeException($"{i}")
-					};
-				}
-			}
-		};
-
-		private RenderTexture pointsBuffer;
 		private ComputeBuffer trianglesBuffer;
 		private ComputeBuffer triCountBuffer;
 
@@ -37,16 +15,15 @@ namespace PrototUnity.MarchingCubesMeshGenerator.RegularMesh {
 		private MeshFilter meshFilter;
 		private MeshCollider meshCollider;
 
-		private static readonly int pointsID = Shader.PropertyToID("points");
 		private static readonly int trianglesID = Shader.PropertyToID("triangles");
 		private static readonly int numPointsPerAxisID = Shader.PropertyToID("numPointsPerAxis");
 
-		private void Awake() {
+		protected override void Awake() {
+			base.Awake();
 			meshFilter = GetComponent<MeshFilter>();
 			meshCollider = GetComponent<MeshCollider>();
 			
 			CreateBuffers();
-			GeneratePoints();
 			GenerateTriangles();
 			GenerateMarchingMesh();
 		}
@@ -60,25 +37,18 @@ namespace PrototUnity.MarchingCubesMeshGenerator.RegularMesh {
 			triCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
 		}
 
-		private void InitTextures() {
-			triangleShader.SetTexture(0, pointsID, pointsBuffer);
-		}
-
-		private void ReleaseBuffers() {
-			pointsBuffer?.Release();
+		protected override void ReleaseBuffers() {
 			trianglesBuffer?.Release();
 			triCountBuffer?.Release();
 		}
 
-		void OnDestroy() {
-			if (Application.isPlaying) {
-				ReleaseBuffers();
-			}
+		public override void GeneratePoints() {
+			base.GeneratePoints();
+			InitTextures();
 		}
 
-		public override void GeneratePoints() {
-			pointsBuffer = textureGenerator.GenerateTexture();
-			InitTextures();
+		private void InitTextures() {
+			triangleShader.SetTexture(0, pointsID, pointsBuffer);
 		}
 
 		public override void GenerateMesh() {

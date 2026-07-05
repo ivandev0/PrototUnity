@@ -12,31 +12,11 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 
 		[SerializeField] private Material voxelMaterial;
 		[SerializeField] private Mesh voxelMesh;
-
-		private struct Triangle {
-			private Vector3 vertexC;
-			private Vector3 vertexB;
-			private Vector3 vertexA;
-
-			public Vector3 this[int i]
-			{
-				get
-				{
-					return i switch {
-						0 => vertexA,
-						1 => vertexB,
-						2 => vertexC,
-						_ => throw new ArgumentOutOfRangeException($"{i}")
-					};
-				}
-			}
-		};
 		
 		private struct Voxel {
 			private Vector3 position;
 		}
 
-		private RenderTexture pointsBuffer;
 		private ComputeBuffer trianglesBuffer;
 		private ComputeBuffer triCountBuffer;
 		private ComputeBuffer voxelsBuffer;
@@ -45,7 +25,6 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		private Mesh mesh;
 		private MeshCollider meshCollider;
 
-		private static readonly int pointsID = Shader.PropertyToID("points");
 		private static readonly int trianglesID = Shader.PropertyToID("triangles");
 		private static readonly int voxelsID = Shader.PropertyToID("voxels");
 		private static readonly int numPointsPerAxisID = Shader.PropertyToID("numPointsPerAxis");
@@ -53,11 +32,11 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		private static readonly int colorsID = Shader.PropertyToID("colors");
 		private static readonly int colorSizeID = Shader.PropertyToID("colorSize");
 
-		private void Awake() {
+		protected override void Awake() {
+			base.Awake();
 			meshCollider = GetComponent<MeshCollider>();
 			
 			CreateBuffers();
-			GeneratePoints();
 			GenerateMesh();
 		}
 
@@ -77,14 +56,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			voxelMaterial.SetVector(colorSizeID, new Vector4(colorTexture.width, colorTexture.height, colorTexture.depth, 0));
 		}
 
-		private void InitTextures() {
-			triangleShader.SetTexture(0, pointsID, pointsBuffer);
-			// editShader.SetTexture(0, pointsID, pointsBuffer);
-			voxelShader.SetTexture(0, pointsID, pointsBuffer);
-		}
-
-		private void ReleaseBuffers() {
-			pointsBuffer?.Release();
+		protected override void ReleaseBuffers() {
 			trianglesBuffer?.Release();
 			triCountBuffer?.Release();
 		}
@@ -100,8 +72,13 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		}
 
 		public override void GeneratePoints() {
-			pointsBuffer = textureGenerator.GenerateTexture();
+			base.GeneratePoints();
 			InitTextures();
+		}
+
+		private void InitTextures() {
+			triangleShader.SetTexture(0, pointsID, pointsBuffer);
+			voxelShader.SetTexture(0, pointsID, pointsBuffer);
 		}
 
 		public override void GenerateMesh() {

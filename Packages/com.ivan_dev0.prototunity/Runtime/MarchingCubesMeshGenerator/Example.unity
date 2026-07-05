@@ -358,7 +358,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1655344321
 Transform:
   m_ObjectHideFlags: 0
@@ -513,12 +513,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d5fa380b1914721a65e558a531bb209, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SebLague.MarchingCubes.Terraformer
-  meshGenerator: {fileID: 2120854188}
+  meshGenerator: {fileID: 1655344322}
   terrainMask:
     serializedVersion: 2
     m_Bits: 1
   terraformWeight: 1
-  terraformRadius: 5
+  terraformRadius: 0.3
 --- !u!4 &1785859111
 Transform:
   m_ObjectHideFlags: 0
@@ -553,7 +553,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &2120854185
 MeshCollider:
   m_ObjectHideFlags: 0
