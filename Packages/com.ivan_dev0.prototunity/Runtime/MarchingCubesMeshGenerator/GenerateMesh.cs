@@ -2,12 +2,11 @@ using System;
 using System.Runtime.InteropServices;
 using PrototUnity.PointsGenerators;
 using PrototUnity.Utils;
-using PrototUnity.VoronoiGenerator;
+using SebLague.MarchingCubes;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Random = UnityEngine.Random;
 
-namespace SebLague.MarchingCubes {
+namespace PrototUnity.MarchingCubesMeshGenerator {
 	public class GenerateMesh : MonoBehaviour {
 		[SerializeField] private AbstractTextureGenerator textureGenerator;
 		[SerializeField] private ComputeShader triangleShader;
@@ -86,7 +85,7 @@ namespace SebLague.MarchingCubes {
 
 			voxelMaterial.enableInstancing = true;
 			voxelMaterial.SetBuffer(voxelsID, voxelsBuffer);
-			colorTexture = Utils.CreateRandomColors(0, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
+			colorTexture = VoronoiGenerator.Utils.CreateRandomColors(0, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
 			voxelMaterial.SetTexture("colors", colorTexture);
 		}
 
