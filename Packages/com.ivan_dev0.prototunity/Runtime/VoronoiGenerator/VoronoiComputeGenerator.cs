@@ -28,8 +28,8 @@ namespace PrototUnity.VoronoiGenerator {
 				return;
 			}
 
-			if (size.x <= 0 || size.y <= 0 || size.z <= 0) {
-				Debug.LogError($"Voronoi size must be positive. Current value: {size}", this);
+			if (Size.x <= 0 || Size.y <= 0 || Size.z <= 0) {
+				Debug.LogError($"Voronoi size must be positive. Current value: {Size}", this);
 				return;
 			}
 
@@ -39,21 +39,21 @@ namespace PrototUnity.VoronoiGenerator {
 		private void DispatchVoronoi() {
 			ReleaseBuffers();
 
-			var numCells = size.x * size.y * size.z;
-			seedTexture = GenerateSeedTexture(size, boundSize);
+			var numCells = Size.x * Size.y * Size.z;
+			seedTexture = GenerateSeedTexture(Size, boundSize);
 
 			var kernel = voronoiShader.FindKernel("BuildVoronoiCells3D");
 			VoronoiCellsBuffer = new ComputeBuffer(numCells, Marshal.SizeOf<VoronoiCell>(), ComputeBufferType.Structured);
 			VoronoiVerticesBuffer = new ComputeBuffer(numCells * 255, Marshal.SizeOf<Vector3>(), ComputeBufferType.Structured);
 
-			voronoiShader.SetInts(centerGridSizeID, size.x, size.y, size.z);
+			voronoiShader.SetInts(centerGridSizeID, Size.x, Size.y, Size.z);
 			voronoiShader.SetFloats(worldOriginID, 0, 0, 0);
 			voronoiShader.SetFloats(boxSizeID, boundSize.x, boundSize.y, boundSize.z);
 			voronoiShader.SetTexture(kernel, centersID, seedTexture);
 			voronoiShader.SetBuffer(kernel, cellsID, VoronoiCellsBuffer);
 			voronoiShader.SetBuffer(kernel, verticesID, VoronoiVerticesBuffer);
 
-			ComputeHelper.Dispatch(voronoiShader, size.x, size.y, size.z);
+			ComputeHelper.Dispatch(voronoiShader, Size.x, Size.y, Size.z);
 		}
 
 		public static Texture3D GenerateSeedTexture(Vector3Int size, Vector3 boundSize) {

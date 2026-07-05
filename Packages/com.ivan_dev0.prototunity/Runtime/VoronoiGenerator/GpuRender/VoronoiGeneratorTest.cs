@@ -4,7 +4,7 @@ using UnityEngine;
 namespace PrototUnity.VoronoiGenerator.GpuRender {
 	public class VoronoiGeneratorTest : AbstractVoronoiComputeGenerator {
 		public override void Generate() {
-			var cells = new VoronoiCell[size.x * size.y * size.z];
+			var cells = new VoronoiCell[Size.x * Size.y * Size.z];
 			VoronoiCellsBuffer = new ComputeBuffer(cells.Length,
 				Marshal.SizeOf(typeof(VoronoiCell)), ComputeBufferType.Structured);
 
@@ -22,11 +22,11 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 				vertices.Length, Marshal.SizeOf(typeof(Vector3)), ComputeBufferType.Structured
 			);
 
-			for (var i = 0; i < size.x; i++) {
-				for (var j = 0; j < size.y; j++) {
-					for (var k = 0; k < size.z; k++) {
+			for (var i = 0; i < Size.x; i++) {
+				for (var j = 0; j < Size.y; j++) {
+					for (var k = 0; k < Size.z; k++) {
 						var cube = CreateVertices(new Vector3(i, j, k));
-						cube.CopyTo(vertices, (k + i * size.z + j * size.z * size.y) * 36);
+						cube.CopyTo(vertices, (k + i * Size.z + j * Size.z * Size.y) * 36);
 					}
 				}
 			}

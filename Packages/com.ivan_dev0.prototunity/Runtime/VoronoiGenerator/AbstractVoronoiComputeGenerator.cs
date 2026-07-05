@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace PrototUnity.VoronoiGenerator {
 	public abstract class AbstractVoronoiComputeGenerator : MonoBehaviour {
-		[SerializeField] public Vector3Int size = new(10, 10, 10);
+		[SerializeField] private Vector3Int size = new(10, 10, 10);
+		public Vector3Int Size => size;
 
 		public ComputeBuffer VoronoiCellsBuffer { get; protected set; }
 		public ComputeBuffer VoronoiVerticesBuffer { get; protected set; }

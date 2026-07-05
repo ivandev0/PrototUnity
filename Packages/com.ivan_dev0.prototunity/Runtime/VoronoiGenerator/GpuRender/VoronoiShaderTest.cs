@@ -15,7 +15,7 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 			buffer?.Release();
 
 			if (renderAll) {
-				var size = voronoiGenerator.size.x * voronoiGenerator.size.y * voronoiGenerator.size.z;
+				var size = voronoiGenerator.Size.x * voronoiGenerator.Size.y * voronoiGenerator.Size.z;
 				buffer = new ComputeBuffer(size, sizeof(int), ComputeBufferType.Structured);
 				var allIds = new int[size];
 				for (var i = 0; i < size; i++) {
