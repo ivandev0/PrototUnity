@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SebLague.MarchingCubes {
+namespace PrototUnity.Utils {
 	public class ComputeHelper {
 		/// Convenience method for dispatching a compute shader.
 		/// It calculates the number of thread groups based on the number of iterations needed.

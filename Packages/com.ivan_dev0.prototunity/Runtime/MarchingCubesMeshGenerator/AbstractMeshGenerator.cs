@@ -1,6 +1,5 @@
 using PrototUnity.PointsGenerators;
 using PrototUnity.Utils;
-using SebLague.MarchingCubes;
 using UnityEngine;
 
 namespace PrototUnity.MarchingCubesMeshGenerator {

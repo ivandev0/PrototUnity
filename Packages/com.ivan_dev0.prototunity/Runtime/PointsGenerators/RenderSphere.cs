@@ -1,4 +1,4 @@
-using SebLague.MarchingCubes;
+using PrototUnity.Utils;
 using UnityEngine;
 
 namespace PrototUnity.PointsGenerators {

@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using PrototUnity.AiTools.Voronoi;
-using SebLague.MarchingCubes;
+using PrototUnity.Utils;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 

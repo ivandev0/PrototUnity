@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-using SebLague.MarchingCubes;
+using PrototUnity.Utils;
 using UnityEngine;
 using UnityEngine.Rendering;
 

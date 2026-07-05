@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using PrototUnity.PointsGenerators;
-using SebLague.MarchingCubes;
+using PrototUnity.Utils;
 using UnityEngine;
 using UnityEngine.Rendering;
 
