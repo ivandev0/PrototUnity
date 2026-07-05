@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 namespace SebLague.MarchingCubes {
 	public class Terraformer : MonoBehaviour {
-		[SerializeField] private GenerateMesh meshGenerator;
+		[SerializeField] private AbstractMeshGenerator meshGenerator;
 		[SerializeField] private LayerMask terrainMask;
 
 		[SerializeField] private float terraformWeight = 1;

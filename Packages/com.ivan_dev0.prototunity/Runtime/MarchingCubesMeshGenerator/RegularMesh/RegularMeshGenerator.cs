@@ -8,13 +8,8 @@ using UnityEngine.Rendering;
 namespace PrototUnity.MarchingCubesMeshGenerator.RegularMesh { 
 	[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 	public class RegularMeshGenerator : AbstractMeshGenerator {
-		[SerializeField] private AbstractTextureGenerator textureGenerator;
 		[SerializeField] private ComputeShader triangleShader;
-
-		[SerializeField] private Vector3 boundSize = Vector3.one;
 		
-		private int NumPointsPerAxis => textureGenerator.NumPointsPerAxis;
-
 		private struct Triangle {
 			private Vector3 vertexC;
 			private Vector3 vertexB;
