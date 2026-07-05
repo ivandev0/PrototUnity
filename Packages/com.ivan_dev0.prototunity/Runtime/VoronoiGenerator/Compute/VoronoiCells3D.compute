@@ -46,6 +46,11 @@ groupshared ConvexFace current_faces[MAX_FACES];
 groupshared float3 new_vertices[MAX_VERTICES];
 groupshared ConvexFace new_faces[MAX_FACES];
 
+groupshared float3 points[MAX_VERTICES];
+groupshared ClipEdge capEdges[MAX_EDGES];
+// TODO can be dropped; we can put new vertices directly into new_vertices
+groupshared float3 clipped[MAX_VERTICES];
+
 float3 GetSeedPosition(int3 seedBox)
 {
     return centers.Load(int4(seedBox, 0)).xyz;
@@ -58,7 +63,7 @@ static bool IsIndexInsideGrid(int3 index, uint3 cellCount)
         && index.z >= 0 && index.z < cellCount.z;
 }
 
-static bool AddUnique(inout float3 points[MAX_VERTICES], inout uint count, float3 value)
+static bool AddUnique(inout uint count, float3 value)
 {
     for (uint i = 0; i < count; ++i)
     {
@@ -80,7 +85,7 @@ static bool AddUnique(inout float3 points[MAX_VERTICES], inout uint count, float
     return true;
 }
 
-static void insertSort(inout float3 points[MAX_VERTICES], int length, float3 center, float3 v, float3 u)
+static void insertSort(int length, float3 center, float3 v, float3 u)
 {
     int j;
     for (int i = 1; i < length; i++)
@@ -100,18 +105,17 @@ static void insertSort(inout float3 points[MAX_VERTICES], int length, float3 cen
     }
 }
 
-ConvexFace BuildCapFace(ClipEdge capEdges[MAX_EDGES], int edgesCount, int startIndex, float3 normal)
+ConvexFace BuildCapFace(int edgesCount, int startIndex, float3 normal)
 {
     ConvexFace result;
     result.vertexStart = -1;
     result.vertexCount = 0;
 
-    float3 points[MAX_VERTICES];
     uint pointsCount = 0;
     for (int i_edge = 0; i_edge < edgesCount; i_edge++)
     {
-        AddUnique(points, pointsCount, capEdges[i_edge].entry);
-        AddUnique(points, pointsCount, capEdges[i_edge].exit);
+        AddUnique(pointsCount, capEdges[i_edge].entry);
+        AddUnique(pointsCount, capEdges[i_edge].exit);
     }
 
     if (pointsCount < 3)
@@ -130,7 +134,7 @@ ConvexFace BuildCapFace(ClipEdge capEdges[MAX_EDGES], int edgesCount, int startI
     float3 u = normalize(cross(normal, reference));
     float3 v = normalize(cross(normal, u));
 
-    insertSort(points, pointsCount, center, v, u);
+    insertSort(pointsCount, center, v, u);
 
     for (uint i = 0; i < pointsCount; i++)
     {
@@ -143,7 +147,7 @@ ConvexFace BuildCapFace(ClipEdge capEdges[MAX_EDGES], int edgesCount, int startI
     return result;
 }
 
-static bool AddIfNoDuplicates(inout float3 clipped[MAX_VERTICES], inout int index, float3 newPoint)
+static bool AddIfNoDuplicates(inout int index, float3 newPoint)
 {
     if (index == 0)
     {
@@ -166,8 +170,6 @@ static bool AddIfNoDuplicates(inout float3 clipped[MAX_VERTICES], inout int inde
 
 FaceAndEdge ClipFace(ConvexFace face, int startIndex, float3 clipPlaneNormal, float clipPlaneOffsetFromOrigin)
 {
-    // TODO can be dropped; we can put new vertices directly into new_vertices
-    float3 clipped[MAX_VERTICES];
     int clipped_index = 0;
     float3 entryCut = float3(0, 0, 0), exitCut = float3(0, 0, 0);
     bool hasEntry = false;
@@ -184,12 +186,12 @@ FaceAndEdge ClipFace(ConvexFace face, int startIndex, float3 clipPlaneNormal, fl
         bool aIn = da <= 0;
         bool bIn = db <= 0;
 
-        if (aIn) AddIfNoDuplicates(clipped, clipped_index, a);
+        if (aIn) AddIfNoDuplicates(clipped_index, a);
         if (aIn && !bIn)
         {
             float t = da / (da - db);
             float3 intersectionPoint = lerp(a, b, t);
-            AddIfNoDuplicates(clipped, clipped_index, intersectionPoint);
+            AddIfNoDuplicates(clipped_index, intersectionPoint);
             exitCut = intersectionPoint;
             hasExit = true;
         }
@@ -197,7 +199,7 @@ FaceAndEdge ClipFace(ConvexFace face, int startIndex, float3 clipPlaneNormal, fl
         {
             float t = da / (da - db);
             float3 intersectionPoint = lerp(a, b, t);
-            AddIfNoDuplicates(clipped, clipped_index, intersectionPoint);
+            AddIfNoDuplicates(clipped_index, intersectionPoint);
             entryCut = intersectionPoint;
             hasEntry = true;
         }
@@ -233,7 +235,6 @@ void ClipByPlane(inout int face_count, float3 normal, float clippingPlaneOffsetF
     int newFaceIndex = 0;
     int newVertexIndex = 0;
 
-    ClipEdge capEdges[MAX_EDGES];
     int capIndex = 0;
 
     for (int faceIndex = 0; faceIndex < face_count; faceIndex++)
@@ -252,7 +253,7 @@ void ClipByPlane(inout int face_count, float3 normal, float clippingPlaneOffsetF
         }
     }
 
-    ConvexFace capFace = BuildCapFace(capEdges, capIndex, newVertexIndex, normal);
+    ConvexFace capFace = BuildCapFace(capIndex, newVertexIndex, normal);
     if (capFace.vertexCount > 0)
     {
         newVertexIndex += capFace.vertexCount;
