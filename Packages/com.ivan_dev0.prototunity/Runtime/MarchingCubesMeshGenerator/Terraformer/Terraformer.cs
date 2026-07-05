@@ -1,8 +1,7 @@
-using PrototUnity.MarchingCubesMeshGenerator;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SebLague.MarchingCubes {
+namespace PrototUnity.MarchingCubesMeshGenerator.Terraformer {
 	public class Terraformer : MonoBehaviour {
 		[SerializeField] private AbstractMeshGenerator meshGenerator;
 		[SerializeField] private LayerMask terrainMask;
@@ -10,12 +9,12 @@ namespace SebLague.MarchingCubes {
 		[SerializeField] private float terraformWeight = 1;
 		[SerializeField] private float terraformRadius = 5;
 
-		private Camera mainCamera;
+		private UnityEngine.Camera mainCamera;
 		private bool hasHit;
 		private Vector3 hitPoint;
 
 		void Start() {
-			mainCamera = Camera.main;
+			mainCamera = UnityEngine.Camera.main;
 		}
 
 		void Update() {
