@@ -1,16 +1,16 @@
 using System;
 using System.Runtime.InteropServices;
 using PrototUnity.PointsGenerators;
-using PrototUnity.Utils;
 using SebLague.MarchingCubes;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace PrototUnity.MarchingCubesMeshGenerator {
-	public class GenerateMesh : MonoBehaviour {
+namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
+	[RequireComponent(typeof(MeshCollider))]
+	public class VoxelMeshGenerator : AbstractMeshGenerator {
 		[SerializeField] private AbstractTextureGenerator textureGenerator;
 		[SerializeField] private ComputeShader triangleShader;
-		[SerializeField] private ComputeShader editShader;
+		// [SerializeField] private ComputeShader editShader;
 		[SerializeField] private ComputeShader voxelShader;
 
 		[SerializeField] private Vector3 boundSize = Vector3.one;
@@ -49,29 +49,27 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		private Texture3D colorTexture;
 
 		private Mesh mesh;
-		private MeshFilter meshFilter;
 		private MeshCollider meshCollider;
 
 		private static readonly int pointsID = Shader.PropertyToID("points");
 		private static readonly int trianglesID = Shader.PropertyToID("triangles");
 		private static readonly int voxelsID = Shader.PropertyToID("voxels");
 		private static readonly int numPointsPerAxisID = Shader.PropertyToID("numPointsPerAxis");
-		private static readonly int textureSizeID = Shader.PropertyToID("textureSize");
-		private static readonly int brushCenterID = Shader.PropertyToID("brushCenter");
-		private static readonly int brushRadiusID = Shader.PropertyToID("brushRadius");
-		private static readonly int deltaTimeID = Shader.PropertyToID("deltaTime");
-		private static readonly int weightID = Shader.PropertyToID("weight");
+		// private static readonly int textureSizeID = Shader.PropertyToID("textureSize");
+		// private static readonly int brushCenterID = Shader.PropertyToID("brushCenter");
+		// private static readonly int brushRadiusID = Shader.PropertyToID("brushRadius");
+		// private static readonly int deltaTimeID = Shader.PropertyToID("deltaTime");
+		// private static readonly int weightID = Shader.PropertyToID("weight");
 		private static readonly int objectToWorldID = Shader.PropertyToID("_ObjectToWorld");
+		private static readonly int colorsID = Shader.PropertyToID("colors");
+		private static readonly int colorSizeID = Shader.PropertyToID("colorSize");
 
 		private void Awake() {
-			meshFilter = GetComponent<MeshFilter>();
 			meshCollider = GetComponent<MeshCollider>();
 			
 			CreateBuffers();
 			GeneratePoints();
-			GenerateTriangles();
-			GenerateMarchingMesh();
-			GenerateVoxels();
+			GenerateMesh();
 		}
 
 		private void CreateBuffers() {
@@ -86,12 +84,13 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 			voxelMaterial.enableInstancing = true;
 			voxelMaterial.SetBuffer(voxelsID, voxelsBuffer);
 			colorTexture = VoronoiGenerator.Utils.CreateRandomColors(0, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
-			voxelMaterial.SetTexture("colors", colorTexture);
+			voxelMaterial.SetTexture(colorsID, colorTexture);
+			voxelMaterial.SetVector(colorSizeID, new Vector4(colorTexture.width, colorTexture.height, colorTexture.depth, 0));
 		}
 
 		private void InitTextures() {
 			triangleShader.SetTexture(0, pointsID, pointsBuffer);
-			editShader.SetTexture(0, pointsID, pointsBuffer);
+			// editShader.SetTexture(0, pointsID, pointsBuffer);
 			voxelShader.SetTexture(0, pointsID, pointsBuffer);
 		}
 
@@ -108,12 +107,18 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		}
 
 		private void Update() {
-			SetUpVoxelRendering();
+			Render();
 		}
 
-		private void GeneratePoints() {
+		public override void GeneratePoints() {
 			pointsBuffer = textureGenerator.GenerateTexture();
 			InitTextures();
+		}
+
+		public override void GenerateMesh() {
+			GenerateTriangles();
+			GenerateMarchingMesh();
+			GenerateVoxels();
 		}
 
 		private void GenerateTriangles() {
@@ -154,33 +159,30 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 			mesh.triangles = meshTriangles;
 
 			mesh.RecalculateNormals();
-			// meshFilter.mesh = mesh;
 			meshCollider.sharedMesh = mesh; 
 		}
 
-		public void Terraform(Vector3 point, float terraformWeight, float terraformRadius) {
-			var boundsSize = boundSize.x;
-			var textureSize = pointsBuffer.width;
-			var worldSizeInOnePixel = boundsSize / textureSize;
-			var terraformPixelRadius = Mathf.CeilToInt(terraformRadius / worldSizeInOnePixel);
-			var texturePosition = GetTexturePosition(point, textureSize, boundsSize);
-			editShader.SetInt(textureSizeID, textureSize);
-			editShader.SetInts(brushCenterID, texturePosition.x, texturePosition.y, texturePosition.z);
-			editShader.SetInt(brushRadiusID, terraformPixelRadius);
-			editShader.SetFloat(deltaTimeID, Time.deltaTime);
-			editShader.SetFloat(weightID, terraformWeight);
-			
-			ComputeHelper.Dispatch(editShader, textureSize, textureSize, textureSize);
-
-			GenerateTriangles();
-			GenerateMarchingMesh();
-			GenerateVoxels();
-		}
-
-		private static Vector3Int GetTexturePosition(Vector3 worldPosition, int textureSize, float cubeSize) {
-			var textureNormalizedCoordinates = ((worldPosition + Vector3.one * (cubeSize * 0.5f)) / cubeSize).Clamp01();
-			return (textureNormalizedCoordinates * (textureSize - 1)).RoundToInt();
-		}
+		// public void Terraform(Vector3 point, float terraformWeight, float terraformRadius) {
+		// 	var boundsSize = boundSize.x;
+		// 	var textureSize = pointsBuffer.width;
+		// 	var worldSizeInOnePixel = boundsSize / textureSize;
+		// 	var terraformPixelRadius = Mathf.CeilToInt(terraformRadius / worldSizeInOnePixel);
+		// 	var texturePosition = GetTexturePosition(point, textureSize, boundsSize);
+		// 	editShader.SetInt(textureSizeID, textureSize);
+		// 	editShader.SetInts(brushCenterID, texturePosition.x, texturePosition.y, texturePosition.z);
+		// 	editShader.SetInt(brushRadiusID, terraformPixelRadius);
+		// 	editShader.SetFloat(deltaTimeID, Time.deltaTime);
+		// 	editShader.SetFloat(weightID, terraformWeight);
+		// 	
+		// 	ComputeHelper.Dispatch(editShader, textureSize, textureSize, textureSize);
+		//
+		// 	GenerateMesh();
+		// }
+		//
+		// private static Vector3Int GetTexturePosition(Vector3 worldPosition, int textureSize, float cubeSize) {
+		// 	var textureNormalizedCoordinates = ((worldPosition + Vector3.one * (cubeSize * 0.5f)) / cubeSize).Clamp01();
+		// 	return (textureNormalizedCoordinates * (textureSize - 1)).RoundToInt();
+		// }
 
 		private void GenerateVoxels() {
 			voxelsBuffer.SetCounterValue(0);
@@ -189,7 +191,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 			ComputeHelper.Dispatch(voxelShader, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
 		}
 
-		private void SetUpVoxelRendering() {
+		public override void Render() {
 			ComputeBuffer.CopyCount(voxelsBuffer, triCountBuffer, 0);
 			int[] triCountArray = { 0 };
 			triCountBuffer.GetData(triCountArray);

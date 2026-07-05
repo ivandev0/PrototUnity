@@ -45,6 +45,7 @@ Shader "Custom/VoxelShader"
 
             StructuredBuffer<float3> voxels;
             Texture3D colors;
+            float4 colorSize;
             uniform float4x4 _ObjectToWorld;
 
             float3 GetVoxelPosition(float3 meshPositionOS, uint svInstanceID)
@@ -78,7 +79,7 @@ Shader "Custom/VoxelShader"
             
             float4 GetColor(uint instanceID)
             {
-                uint width = 100, height = 100;
+                uint width = colorSize.x, height = colorSize.y;
                 int x = instanceID % width;
                 int y = (instanceID / width) % height;
                 int z = instanceID / (width * height);
