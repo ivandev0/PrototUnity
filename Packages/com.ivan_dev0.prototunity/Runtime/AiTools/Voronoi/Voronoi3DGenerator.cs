@@ -13,18 +13,43 @@ namespace PrototUnity.AiTools.Voronoi {
 		public readonly Vector3Int cellCount;
 		public readonly Vector3 cubeSize;
 
-		public readonly bool uniform;
+		public readonly Func<VoronoiGeneratorParameters, Vector3Int, Vector3> seedModifier;
+
+		public static readonly Func<VoronoiGeneratorParameters, Vector3Int, Vector3> uniform = (parameters, index) => {
+			var cellCount = parameters.cellCount;
+			var cubeSize = parameters.cubeSize;
+			var space = new Vector3(cubeSize.x / cellCount.x, cubeSize.y / cellCount.y, cubeSize.z / cellCount.z);
+			
+			var center = space * 0.5f + Vector3.Scale(index, space);
+			return center;
+		};
+		
+		public static readonly Func<VoronoiGeneratorParameters, Vector3Int, Vector3> randomWithHeight = (parameters, index) => {
+			var cellCount = parameters.cellCount;
+			var cubeSize = parameters.cubeSize;
+			var space = new Vector3(cubeSize.x / cellCount.x, cubeSize.y / cellCount.y, cubeSize.z / cellCount.z);
+			
+			var center = space * 0.5f + Vector3.Scale(index, space);
+			var randomnessPower = Mathf.Min(0.5f, Mathf.Max(0, cellCount.y - index.y - 1) * 0.1f);
+			var randomness = new Vector3(
+				Random.Range(-space.x * 0.5f, space.x * 0.5f),
+				Random.Range(-space.y * 0.5f, space.y * 0.5f),
+				Random.Range(-space.z * 0.5f, space.z * 0.5f)
+			) * randomnessPower;
+			var point = center + randomness;
+			return point;
+		};
 
 		public VoronoiGeneratorParameters(
 			int seed,
 			Vector3Int cellCount,
 			Vector3 cubeSize,
-			bool uniform
+			Func<VoronoiGeneratorParameters, Vector3Int, Vector3> seedModifier
 		) {
 			this.seed = seed;
 			this.cellCount = cellCount;
 			this.cubeSize = cubeSize;
-			this.uniform = uniform;
+			this.seedModifier = seedModifier;
 		}
 	}
 
@@ -122,7 +147,8 @@ namespace PrototUnity.AiTools.Voronoi {
 			try {
 				var job = new VoronoiJob(
 					indexAndSeeds,
-					generatorParameters,
+					generatorParameters.cellCount,
+					generatorParameters.cubeSize,
 					stream.AsWriter()
 				);
 				
@@ -304,15 +330,18 @@ namespace PrototUnity.AiTools.Voronoi {
 		private struct VoronoiJob : IJobParallelFor {
 			[WriteOnly] public NativeStream.Writer result;
 			[ReadOnly] public NativeArray<CellIndex> indexAndSeeds;
-			private readonly VoronoiGeneratorParameters parameters;
-
+			[ReadOnly] private Vector3Int cellCount;
+			[ReadOnly] private Vector3 cubeSize;
+ 
 			public VoronoiJob(
 				NativeArray<CellIndex> indexAndSeeds,
-				VoronoiGeneratorParameters parameters,
+				Vector3Int cellCount,
+				Vector3 cubeSize,
 				NativeStream.Writer result
 			) {
-				this.parameters = parameters;
 				this.indexAndSeeds = indexAndSeeds;
+				this.cellCount = cellCount;
+				this.cubeSize = cubeSize;
 				this.result = result;
 			}
 
@@ -320,9 +349,9 @@ namespace PrototUnity.AiTools.Voronoi {
 				var writer = result;
 				writer.BeginForEachIndex(index);
 				var seed = indexAndSeeds[index];
-				var neighbourIndex = GetNeighbourSeeds(parameters.cellCount, seed.index);
+				var neighbourIndex = GetNeighbourSeeds(cellCount, seed.index);
 				try {
-					BuildCell(seed, neighbourIndex, parameters.cubeSize, ref writer);
+					BuildCell(seed, neighbourIndex, ref writer);
 				} finally {
 					neighbourIndex.Dispose();
 					writer.EndForEachIndex();
@@ -360,14 +389,13 @@ namespace PrototUnity.AiTools.Voronoi {
 			private void BuildCell(
 				CellIndex seed,
 				NativeList<Vector3Int> neighbourIndexes,
-				Vector3 cubeSize,
 				ref NativeStream.Writer writer
 			) {
 				var poly = ConvexPolyhedronBuilder.CreateBox(cubeSize * 0.5f, cubeSize);
 				try {
 					for (var i = 0; i < neighbourIndexes.Length; i++) {
 						var neighbourIndex = neighbourIndexes[i];
-						var neighbourSeed = indexAndSeeds[Utils.ToSeedIndex(parameters.cellCount, neighbourIndex)];
+						var neighbourSeed = indexAndSeeds[Utils.ToSeedIndex(cellCount, neighbourIndex)];
 						var vectorBetweenCenters = neighbourSeed.position - seed.position;
 						var length = vectorBetweenCenters.magnitude;
 						if (length < EPSILON) continue;

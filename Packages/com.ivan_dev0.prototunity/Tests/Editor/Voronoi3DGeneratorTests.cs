@@ -46,7 +46,7 @@ namespace PrototUnity.Editor.Tests.Editor {
 					seed: 0,
 					cellCount: cellCount,
 					cubeSize: cellCount,
-					uniform: true
+					seedModifier: VoronoiGeneratorParameters.uniform
 				),
 				new VoronoiMeshParameters(
 					faceMaterial: null,

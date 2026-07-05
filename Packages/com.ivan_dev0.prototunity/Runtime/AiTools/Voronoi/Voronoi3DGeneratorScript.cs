@@ -26,7 +26,7 @@ namespace PrototUnity.AiTools.Voronoi {
 		[ContextMenu("Generate")]
 		public void Generate() {
 			var voronoiGeneratorParameters = new VoronoiGeneratorParameters(
-				seed, cellCount, cubeSize, uniform
+				seed, cellCount, cubeSize, uniform ? VoronoiGeneratorParameters.uniform : VoronoiGeneratorParameters.randomWithHeight
 			);
 			
 			var voronoiMeshParameters = new VoronoiMeshParameters(

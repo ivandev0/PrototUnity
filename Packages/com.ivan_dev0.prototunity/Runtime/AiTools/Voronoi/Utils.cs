@@ -18,7 +18,6 @@ namespace PrototUnity.AiTools.Voronoi {
 		) {
 			Vector3Int cellCount = generatorParameters.cellCount;
 			Vector3 cubeSize = generatorParameters.cubeSize;
-			bool uniform = generatorParameters.uniform;
 			var totalSeeds = cellCount.x * cellCount.y * cellCount.z;
 			var seeds = new CellIndex[totalSeeds];
 			var maxAttempts = Mathf.Max(200, totalSeeds * 50);
@@ -30,21 +29,13 @@ namespace PrototUnity.AiTools.Voronoi {
 						var attempts = 0;
 						while (attempts < maxAttempts) {
 							attempts++;
+							var point = generatorParameters.seedModifier.Invoke(generatorParameters, new Vector3Int(x, y, z));
 
 							var center = new Vector3(
 								space.x * 0.5f + x * space.x,
 								space.y * 0.5f + y * space.y,
 								space.z * 0.5f + z * space.z
 							);
-
-							var randomnessPower =
-								uniform ? 0 : Mathf.Min(0.5f, Mathf.Max(0, cellCount.y - y - 1) * 0.1f);
-							var randomness = new Vector3(
-								Random.Range(-space.x * 0.5f, space.x * 0.5f),
-								Random.Range(-space.y * 0.5f, space.y * 0.5f),
-								Random.Range(-space.z * 0.5f, space.z * 0.5f)
-							);
-							var point = center + randomness;
 
 							if (!IsPointInsideCube(point, cubeSize * 0.5f, cubeSize)) continue;
 							if (!IsPointInsideCube(point, center, space)) continue;

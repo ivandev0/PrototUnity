@@ -61,7 +61,21 @@ namespace PrototUnity.VoronoiGenerator {
 				seed: 0,
 				cellCount: size,
 				cubeSize: boundSize,
-				uniform: false
+				seedModifier: (parameters, index) => {
+					var cellCount = parameters.cellCount;
+					var cubeSize = parameters.cubeSize;
+					var space = new Vector3(cubeSize.x / cellCount.x, cubeSize.y / cellCount.y, cubeSize.z / cellCount.z);
+			
+					var center = space * 0.5f + Vector3.Scale(index, space);
+			
+					var randomness = new Vector3(
+						Random.Range(-space.x * 0.5f, space.x * 0.5f),
+						Random.Range(-space.y * 0.5f, space.y * 0.5f),
+						Random.Range(-space.z * 0.5f, space.z * 0.5f)
+					);
+					var point = center + randomness;
+					return point;
+				} 
 			);
 
 			Random.InitState(voronoiGeneratorParameters.seed);
