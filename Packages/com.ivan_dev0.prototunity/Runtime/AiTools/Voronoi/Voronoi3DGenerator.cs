@@ -333,6 +333,8 @@ namespace PrototUnity.AiTools.Voronoi {
 				Vector3Int cellCount,
 				Vector3Int index
 			) {
+				// TODO this is incorrect. The idea is to cut planes only with neighbors,
+				//  but there are cases when this is not enough.
 				var result = new NativeList<Vector3Int>(Allocator.Temp);
 				for (var y = -1; y <= 1; y++) {
 					for (var x = -1; x <= 1; x++) {
