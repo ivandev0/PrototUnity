@@ -83,7 +83,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 				receiveShadows = true,
 				matProps = new MaterialPropertyBlock()
 			};
-			rp.matProps.SetMatrix(objectToWorldID, Matrix4x4.Scale(boundSize / NumPointsPerAxis));
+			rp.matProps.SetMatrix(objectToWorldID, Matrix4x4.TRS(transform.position, Quaternion.identity, boundSize / NumPointsPerAxis));
 			var commandCount = 1;
 			var commandBuf = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, commandCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
 			var commandData = new GraphicsBuffer.IndirectDrawIndexedArgs[commandCount];
