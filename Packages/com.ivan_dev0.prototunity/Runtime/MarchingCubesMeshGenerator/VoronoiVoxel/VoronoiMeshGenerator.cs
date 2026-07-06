@@ -111,7 +111,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel {
 			var voxelsAmount = voxelCountArray[0];
 			
 			var rp = new RenderParams(voronoiMaterial) {
-				worldBounds = new Bounds(Vector3.zero, boundSize * 1.1f),
+				worldBounds = new Bounds(Vector3.zero, BoundSize * 1.1f),
 				shadowCastingMode = ShadowCastingMode.On,
 				receiveShadows = true,
 				matProps = new MaterialPropertyBlock()

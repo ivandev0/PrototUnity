@@ -21,7 +21,8 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 	public abstract class AbstractMeshGenerator : MeshGeneratorBase {
 		[SerializeField] protected AbstractTextureGenerator textureGenerator;
 		
-		[SerializeField] protected Vector3 boundSize = Vector3.one;
+		[SerializeField] private Vector3 boundSize = Vector3.one;
+		public Vector3 BoundSize => boundSize;
 		
 		[SerializeField] private ComputeShader editShader;
 		[SerializeField] private ComputeShader triangleShader;
@@ -128,7 +129,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 			for (var i = 0; i < numTris; i++) {
 				for (var j = 0; j < 3; j++) {
 					meshTriangles[i * 3 + j] = i * 3 + j;
-					vertices[i * 3 + j] = Vector3.Scale(tris[i][j] / NumPointsPerAxis, boundSize);
+					vertices[i * 3 + j] = Vector3.Scale(tris[i][j] / NumPointsPerAxis, BoundSize);
 				}
 			}
 
@@ -141,7 +142,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		public abstract void Render();
 
 		public sealed override void Terraform(Vector3 point, float terraformWeight, float terraformRadius) {
-			var boundsSize = boundSize.x;
+			var boundsSize = BoundSize.x;
 			var textureSize = NumPointsPerAxis;
 			var worldSizeInOnePixel = boundsSize / textureSize;
 			var terraformPixelRadius = Mathf.CeilToInt(terraformRadius / worldSizeInOnePixel);

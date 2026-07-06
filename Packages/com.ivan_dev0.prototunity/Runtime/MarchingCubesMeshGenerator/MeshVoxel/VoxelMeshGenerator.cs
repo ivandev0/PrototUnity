@@ -78,12 +78,12 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			var voxelsAmount = voxelCountArray[0];
 			
 			var rp = new RenderParams(voxelMaterial) {
-				worldBounds = new Bounds(Vector3.zero, boundSize * 1.1f),
+				worldBounds = new Bounds(Vector3.zero, BoundSize * 1.1f),
 				shadowCastingMode = ShadowCastingMode.On,
 				receiveShadows = true,
 				matProps = new MaterialPropertyBlock()
 			};
-			rp.matProps.SetMatrix(objectToWorldID, Matrix4x4.TRS(transform.position, Quaternion.identity, boundSize / NumPointsPerAxis));
+			rp.matProps.SetMatrix(objectToWorldID, Matrix4x4.TRS(transform.position, Quaternion.identity, BoundSize / NumPointsPerAxis));
 			var commandCount = 1;
 			var commandBuf = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, commandCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
 			var commandData = new GraphicsBuffer.IndirectDrawIndexedArgs[commandCount];
