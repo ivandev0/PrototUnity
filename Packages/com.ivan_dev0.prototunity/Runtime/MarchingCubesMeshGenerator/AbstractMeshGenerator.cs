@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using PrototUnity.PointsGenerators;
 using PrototUnity.Utils;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Rendering;
 
 namespace PrototUnity.MarchingCubesMeshGenerator {
@@ -63,6 +64,8 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		private static readonly int trianglesID = Shader.PropertyToID("triangles");
 		private static readonly int numPointsPerAxisID = Shader.PropertyToID("numPointsPerAxis");
 
+		public event UnityAction MeshGeneratedEvent = delegate { };
+		
 		protected virtual void Awake() {
 			BeforePointGeneration();
 			GeneratePoints();
@@ -71,6 +74,8 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 			BeforeMeshGeneration();
 			GenerateMesh();
 			AfterMeshGeneration();
+
+			MeshGeneratedEvent();
 		}
 
 		public sealed override void GeneratePoints() {
