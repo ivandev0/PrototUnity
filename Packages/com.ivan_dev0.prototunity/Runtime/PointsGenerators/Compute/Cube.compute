@@ -2,7 +2,7 @@
 
 RWTexture3D<float> points;
 uint textureSize;
-float size;
+uint size;
 
 float calculateDensity(int3 cell)
 {

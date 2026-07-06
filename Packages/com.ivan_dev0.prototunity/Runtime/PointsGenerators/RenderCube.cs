@@ -4,7 +4,8 @@ using UnityEngine;
 namespace PrototUnity.PointsGenerators {
 	public class RenderCube : AbstractTextureGenerator {
 		[SerializeField] private ComputeShader computeShader;
-		[SerializeField] private float size;
+		[SerializeField] private uint size;
+		public uint Size => size;
 
 		private RenderTexture pointsTexture;
 		
@@ -33,7 +34,7 @@ namespace PrototUnity.PointsGenerators {
 
 			computeShader.SetTexture(0, pointsID, pointsTexture);
 			computeShader.SetInt(textureSizeID, NumPointsPerAxis);
-			computeShader.SetFloat(sizeID, size);
+			computeShader.SetInt(sizeID, (int) size);
 
 			ComputeHelper.Dispatch(computeShader, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
 			return pointsTexture;
