@@ -6,12 +6,12 @@ namespace PrototUnity.MarchingCubesMeshGenerator.RegularMesh {
 		private MeshFilter meshFilter;
 		private MeshCollider meshCollider;
 
-		public override void BeforePointGeneration() {
+		protected override void BeforePointGeneration() {
 			meshFilter = GetComponent<MeshFilter>();
 			meshCollider = GetComponent<MeshCollider>();
 		}
 
-		public override void AfterMeshGeneration() {
+		protected override void AfterMeshGeneration() {
 			meshCollider.sharedMesh = mesh; 
 			meshFilter.mesh = mesh;
 		}

@@ -3,18 +3,27 @@ using System.Runtime.InteropServices;
 using PrototUnity.PointsGenerators;
 using PrototUnity.Utils;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.Rendering;
 
 namespace PrototUnity.MarchingCubesMeshGenerator {
 	public abstract class MeshGeneratorBase : MonoBehaviour {
-		public virtual void BeforePointGeneration() {}
-		public abstract void GeneratePoints();
-		public virtual void AfterPointGeneration() {}
+		public void Generate() {
+			BeforePointGeneration();
+			GeneratePoints();
+			AfterPointGeneration();
+			
+			BeforeMeshGeneration();
+			GenerateMesh();
+			AfterMeshGeneration();
+		}
 		
-		public virtual void BeforeMeshGeneration() {}
-		public abstract void GenerateMesh();
-		public virtual void AfterMeshGeneration() {}
+		protected virtual void BeforePointGeneration() {}
+		protected abstract void GeneratePoints();
+		protected virtual void AfterPointGeneration() {}
+		
+		protected virtual void BeforeMeshGeneration() {}
+		protected abstract void GenerateMesh();
+		protected virtual void AfterMeshGeneration() {}
 
 		public abstract void Terraform(Vector3 point, float terraformWeight, float terraformRadius);
 	}
@@ -63,22 +72,12 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		private static readonly int weightID = Shader.PropertyToID("weight");
 		private static readonly int trianglesID = Shader.PropertyToID("triangles");
 		private static readonly int numPointsPerAxisID = Shader.PropertyToID("numPointsPerAxis");
-
-		public event UnityAction MeshGeneratedEvent = delegate { };
 		
 		protected virtual void Awake() {
-			BeforePointGeneration();
-			GeneratePoints();
-			AfterPointGeneration();
-			
-			BeforeMeshGeneration();
-			GenerateMesh();
-			AfterMeshGeneration();
-
-			MeshGeneratedEvent();
+			Generate();
 		}
 
-		public sealed override void GeneratePoints() {
+		protected sealed override void GeneratePoints() {
 			pointsBuffer = textureGenerator.GenerateTexture();
 			
 			InitTextures();
@@ -99,7 +98,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 			triCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
 		}
 
-		public sealed override void GenerateMesh() {
+		protected sealed override void GenerateMesh() {
 			GenerateTriangles();
 			GenerateMarchingMesh();
 		}

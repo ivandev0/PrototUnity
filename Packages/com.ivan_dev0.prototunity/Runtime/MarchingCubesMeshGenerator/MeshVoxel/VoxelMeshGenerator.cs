@@ -27,7 +27,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		private static readonly int colorsID = Shader.PropertyToID("colors");
 		private static readonly int colorSizeID = Shader.PropertyToID("colorSize");
 
-		public override void BeforePointGeneration() {
+		protected override void BeforePointGeneration() {
 			meshCollider = GetComponent<MeshCollider>();
 			CreateBuffers();
 		}
@@ -46,7 +46,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			voxelMaterial.SetVector(colorSizeID, new Vector4(colorTexture.width, colorTexture.height, colorTexture.depth, 0));
 		}
 
-		public override void AfterPointGeneration() {
+		protected override void AfterPointGeneration() {
 			InitTextures();
 		}
 
@@ -54,7 +54,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			voxelShader.SetTexture(0, pointsID, pointsBuffer);
 		}
 
-		public override void AfterMeshGeneration() {
+		protected override void AfterMeshGeneration() {
 			meshCollider.sharedMesh = mesh; 
 			
 			GenerateVoxels();

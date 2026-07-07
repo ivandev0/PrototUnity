@@ -42,7 +42,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel {
 			}
 		}
 
-		public override void BeforePointGeneration() {
+		protected override void BeforePointGeneration() {
 			meshCollider = GetComponent<MeshCollider>();
 			voronoiGenerator.Generate();
 			CreateBuffers();
@@ -76,7 +76,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel {
 			voronoiMesh.SetTriangles(triangles, 0);
 		}
 
-		public override void AfterPointGeneration() {
+		protected override void AfterPointGeneration() {
 			InitTextures();
 		}
 
@@ -86,7 +86,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel {
 			voxelShader.SetTexture(0, pointsID, pointsBuffer);
 		}
 
-		public override void AfterMeshGeneration() {
+		protected override void AfterMeshGeneration() {
 			meshCollider.sharedMesh = mesh; 
 			
 			GenerateVoxels();

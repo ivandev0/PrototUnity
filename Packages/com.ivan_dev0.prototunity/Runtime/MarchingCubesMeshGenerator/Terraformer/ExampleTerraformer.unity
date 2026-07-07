@@ -399,6 +399,7 @@ GameObject:
   - component: {fileID: 1655344321}
   - component: {fileID: 1655344323}
   - component: {fileID: 1655344322}
+  - component: {fileID: 1655344327}
   - component: {fileID: 1655344325}
   - component: {fileID: 1655344326}
   - component: {fileID: 1655344324}
@@ -534,6 +535,19 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1655344327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1655344320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6552814d0cac41d3a31e8349c51d0cbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.MarchingCubesMeshGenerator.GeneratorTest
+  generator: {fileID: 1655344322}
 --- !u!1 &1683714606
 GameObject:
   m_ObjectHideFlags: 0
@@ -662,6 +676,7 @@ GameObject:
   - component: {fileID: 2120854190}
   - component: {fileID: 2120854189}
   - component: {fileID: 2120854188}
+  - component: {fileID: 2120854192}
   - component: {fileID: 2120854185}
   m_Layer: 0
   m_Name: VoxelGenerateMeshTest
@@ -756,6 +771,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1683714607}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2120854192
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2120854184}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6552814d0cac41d3a31e8349c51d0cbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.MarchingCubesMeshGenerator.GeneratorTest
+  generator: {fileID: 2120854188}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
