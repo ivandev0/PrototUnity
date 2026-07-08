@@ -90,6 +90,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel {
 			meshCollider.sharedMesh = mesh; 
 			
 			GenerateVoxels();
+			OnMeshChanged(mesh);
 		}
 
 		private void GenerateVoxels() {

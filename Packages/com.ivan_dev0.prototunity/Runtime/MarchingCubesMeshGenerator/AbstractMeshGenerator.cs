@@ -3,10 +3,14 @@ using System.Runtime.InteropServices;
 using PrototUnity.PointsGenerators;
 using PrototUnity.Utils;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Rendering;
 
 namespace PrototUnity.MarchingCubesMeshGenerator {
 	public abstract class MeshGeneratorBase : MonoBehaviour {
+		public event UnityAction<Mesh> MeshChangedEvent = delegate {};
+		protected void OnMeshChanged(Mesh mesh) => MeshChangedEvent?.Invoke(mesh);
+		
 		public void Generate() {
 			BeforePointGeneration();
 			GeneratePoints();

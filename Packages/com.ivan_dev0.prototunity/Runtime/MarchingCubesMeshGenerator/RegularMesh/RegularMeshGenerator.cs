@@ -14,6 +14,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.RegularMesh {
 		protected override void AfterMeshGeneration() {
 			meshCollider.sharedMesh = mesh; 
 			meshFilter.mesh = mesh;
+			OnMeshChanged(mesh);
 		}
 
 		public override void Render() {

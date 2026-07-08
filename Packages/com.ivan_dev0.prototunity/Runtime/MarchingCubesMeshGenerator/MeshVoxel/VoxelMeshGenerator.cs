@@ -58,6 +58,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			meshCollider.sharedMesh = mesh; 
 			
 			GenerateVoxels();
+			OnMeshChanged(mesh);
 		}
 
 		private void GenerateVoxels() {
