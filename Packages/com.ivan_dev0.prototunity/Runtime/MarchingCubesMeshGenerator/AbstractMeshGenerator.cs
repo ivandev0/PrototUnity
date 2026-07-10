@@ -30,6 +30,10 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		protected virtual void AfterMeshGeneration() {}
 
 		public abstract void Terraform(Vector3 point, float terraformWeight, float terraformRadius);
+
+		public interface ISaveData {}
+		public abstract ISaveData Save();
+		public abstract void Load(ISaveData data);
 	}
 	
 	public abstract class AbstractMeshGenerator : MeshGeneratorBase {
@@ -167,7 +171,39 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 			GenerateMesh();
 			AfterMeshGeneration();
 		}
-		
+
+		private class SaveData : ISaveData {
+			private readonly RenderTexture texture;
+			
+			public SaveData(RenderTexture texture) {
+				this.texture = new RenderTexture(texture);
+				this.texture.Create();
+				Graphics.CopyTexture(texture, this.texture);
+			}
+			
+			public RenderTexture GetTexture() {
+				var copy = new RenderTexture(texture);
+				copy.Create();
+				Graphics.CopyTexture(texture, copy);
+				return copy;
+			}
+		}
+
+		public override ISaveData Save() {
+			return new SaveData(pointsBuffer);
+		}
+
+		public override void Load(ISaveData data) {
+			pointsBuffer.Release();
+			pointsBuffer = ((SaveData) data).GetTexture();
+			InitTextures();
+			AfterPointGeneration();
+			
+			BeforeMeshGeneration();
+			GenerateMesh();
+			AfterMeshGeneration();
+		}
+
 		protected virtual void ReleaseBuffers() {
 			pointsBuffer.Release();
 			triCountBuffer.Release();
