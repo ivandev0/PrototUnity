@@ -9,6 +9,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		[SerializeField] private ComputeShader voxelShader;
 		[SerializeField] private Material voxelMaterial;
 		[SerializeField] private Mesh voxelMesh;
+		[SerializeField] private bool differentHeight;
 		
 		private struct Voxel {
 			private uint id;
@@ -18,6 +19,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		private ComputeBuffer voxelCountBuffer;
 		private ComputeBuffer voxelsBuffer;
 		private Texture3D colorTexture;
+		private Texture2D heightTexture;
 
 		private MeshCollider meshCollider;
 
@@ -26,6 +28,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		private static readonly int objectToWorldID = Shader.PropertyToID("_ObjectToWorld");
 		private static readonly int colorsID = Shader.PropertyToID("colors");
 		private static readonly int colorSizeID = Shader.PropertyToID("colorSize");
+		private static readonly int heightsID = Shader.PropertyToID("heights");
 
 		protected override void BeforePointGeneration() {
 			meshCollider = GetComponent<MeshCollider>();
@@ -44,6 +47,13 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			colorTexture = VoronoiGenerator.Utils.CreateRandomColors(0, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
 			voxelMaterial.SetTexture(colorsID, colorTexture);
 			voxelMaterial.SetVector(colorSizeID, new Vector4(colorTexture.width, colorTexture.height, colorTexture.depth, 0));
+
+			var voxelSize = BoundSize / NumPointsPerAxis;
+			var range = new Vector2(-voxelSize.x * 2, voxelSize.x * 2);
+			heightTexture = differentHeight 
+				? Utils.GetRandomHeights(colorTexture.width, colorTexture.height, range) 
+				: Utils.GetEmptyTexture(colorTexture.width, colorTexture.height);
+			voxelMaterial.SetTexture(heightsID, heightTexture);
 		}
 
 		protected override void AfterPointGeneration() {
