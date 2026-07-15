@@ -816,8 +816,9 @@ MonoBehaviour:
   editShader: {fileID: 7200000, guid: f3120fb0b0354e09abeb6a6b5ec7d848, type: 3}
   triangleShader: {fileID: 7200000, guid: aea4dc0a28cfd453faa9de6188f01665, type: 3}
   voxelShader: {fileID: 7200000, guid: a55911b9b5004b8595b531b9b41a1489, type: 3}
-  voxelMaterial: {fileID: 2100000, guid: df22267024574420d94cf12fe97679e6, type: 2}
+  voxelMaterial: {fileID: 2100000, guid: c5d98cb266a3242bcb2383d499e65a4b, type: 2}
   voxelMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  differentHeight: 0
 --- !u!114 &2120854189
 MonoBehaviour:
   m_ObjectHideFlags: 0
