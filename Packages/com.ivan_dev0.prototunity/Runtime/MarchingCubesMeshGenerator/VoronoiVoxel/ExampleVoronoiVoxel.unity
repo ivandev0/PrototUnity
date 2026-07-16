@@ -431,7 +431,7 @@ MonoBehaviour:
   voronoiGenerator: {fileID: 1642334229}
   voxelShader: {fileID: 7200000, guid: a55911b9b5004b8595b531b9b41a1489, type: 3}
   voronoiShader: {fileID: 7200000, guid: eb4d8e03f9d454924b8fd85fdcb31670, type: 3}
-  voronoiMaterial: {fileID: 2100000, guid: 46caaa625c6c418d84c8a263d79d7f65, type: 2}
+  voronoiMaterial: {fileID: 2100000, guid: 53e5551a49ff4469c978b00a06d19de1, type: 2}
 --- !u!114 &1642334228
 MonoBehaviour:
   m_ObjectHideFlags: 0
