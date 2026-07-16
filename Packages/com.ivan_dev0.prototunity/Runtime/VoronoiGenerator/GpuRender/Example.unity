@@ -401,7 +401,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.VoronoiGenerator.GpuRender.VoronoiGPURender
   voronoiGenerator: {fileID: 890536570}
-  voronoiMaterial: {fileID: 2100000, guid: 46caaa625c6c418d84c8a263d79d7f65, type: 2}
+  voronoiMaterial: {fileID: 2100000, guid: 53e5551a49ff4469c978b00a06d19de1, type: 2}
   boundSize: {x: 5, y: 5, z: 5}
 --- !u!114 &890536570
 MonoBehaviour:
@@ -448,7 +448,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.VoronoiGenerator.GpuRender.VoronoiGPURender
   voronoiGenerator: {fileID: 1598548722}
-  voronoiMaterial: {fileID: 2100000, guid: 46caaa625c6c418d84c8a263d79d7f65, type: 2}
+  voronoiMaterial: {fileID: 2100000, guid: 53e5551a49ff4469c978b00a06d19de1, type: 2}
   boundSize: {x: 5, y: 5, z: 5}
 --- !u!114 &1598548722
 MonoBehaviour:

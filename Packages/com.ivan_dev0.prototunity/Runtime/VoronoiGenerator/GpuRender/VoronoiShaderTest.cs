@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -6,8 +7,19 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 		[SerializeField] private VoronoiGPURender voronoiGPURender;
 		[SerializeField] private AbstractVoronoiComputeGenerator voronoiGenerator;
 
+		private struct Voxel
+		{
+			uint id;
+			Vector3 position;
+
+			public Voxel(uint id, Vector3 position) {
+				this.id = id;
+				this.position = position;
+			}
+		};
+		
 		[SerializeField] private bool renderAll = true;
-		[SerializeField] private int[] ids;
+		[SerializeField] private uint[] ids;
 
 		[CanBeNull] private ComputeBuffer buffer;
 		
@@ -16,18 +28,22 @@ namespace PrototUnity.VoronoiGenerator.GpuRender {
 
 			if (renderAll) {
 				var size = voronoiGenerator.Size.x * voronoiGenerator.Size.y * voronoiGenerator.Size.z;
-				buffer = new ComputeBuffer(size, sizeof(int), ComputeBufferType.Structured);
-				var allIds = new int[size];
-				for (var i = 0; i < size; i++) {
-					allIds[i] = i;
+				buffer = new ComputeBuffer(size, Marshal.SizeOf(typeof(Voxel)), ComputeBufferType.Structured);
+				var allIds = new Voxel[size];
+				for (uint i = 0; i < size; i++) {
+					allIds[i] = new Voxel(i, Vector3.zero);
 				}
 				buffer.SetData(allIds);
 				voronoiGPURender.SetSpecificIdsToRender(buffer);
 			} else if (ids.Length == 0) {
 				voronoiGPURender.SetSpecificIdsToRender(null);
 			} else {
-				buffer = new ComputeBuffer(ids.Length, sizeof(int));
-				buffer.SetData(ids);
+				buffer = new ComputeBuffer(ids.Length, Marshal.SizeOf(typeof(Voxel)));
+				var filteredIds = new Voxel[ids.Length];
+				for (var i = 0; i < ids.Length; i++) {
+					filteredIds[i] = new Voxel(ids[i], Vector3.zero);
+				}
+				buffer.SetData(filteredIds);
 				voronoiGPURender.SetSpecificIdsToRender(buffer);
 			}
 		}
