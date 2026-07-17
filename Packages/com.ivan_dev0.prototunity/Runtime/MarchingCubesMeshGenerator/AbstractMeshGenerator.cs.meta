@@ -1,3 +1,14 @@
 fileFormatVersion: 2
 guid: 4e75111ee30e42c08aafebf985df74e5
-timeCreated: 1783253271
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - textureGenerator: {instanceID: 0}
+  - editShader: {fileID: 7200000, guid: f3120fb0b0354e09abeb6a6b5ec7d848, type: 3}
+  - triangleShader: {fileID: 7200000, guid: aea4dc0a28cfd453faa9de6188f01665, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,3 +1,12 @@
 fileFormatVersion: 2
 guid: c3d88b3815d54506b1b5976a9c013462
-timeCreated: 1782555921
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - voronoiShader: {fileID: 7200000, guid: eb4d8e03f9d454924b8fd85fdcb31670, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
