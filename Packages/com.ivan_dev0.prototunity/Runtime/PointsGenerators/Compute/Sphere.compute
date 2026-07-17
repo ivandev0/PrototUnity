@@ -7,11 +7,8 @@ float radius;
 float calculateDensity(int3 cell)
 {
     float3 worldPos = cell / float(textureSize - 1.0) - 0.5f;
-
     float radiusD = radius / float(textureSize);
-    float maxD = length(float3(radiusD, radiusD, radiusD));
-
-    float density = length(worldPos) / maxD - 0.5f;
+    float density = length(worldPos) / radiusD - 1.0f;
 
     return density;
 }
