@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace PrototUnity.MarchingCubesMeshGenerator.Terraformer {
-	public class MouseTestTerraformer : MonoBehaviour {
+namespace PrototUnity.MarchingCubesMeshGenerator.Terraformer.Tests {
+	internal class MouseTestTerraformer : MonoBehaviour {
 		[SerializeField] private AbstractMeshGenerator meshGenerator;
 		[SerializeField] private LayerMask terrainMask;
 

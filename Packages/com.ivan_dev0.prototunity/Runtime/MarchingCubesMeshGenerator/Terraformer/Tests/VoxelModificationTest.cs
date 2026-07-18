@@ -2,7 +2,7 @@ using PrototUnity.MarchingCubesMeshGenerator.MeshVoxel;
 using PrototUnity.PointsGenerators;
 using UnityEngine;
 
-namespace PrototUnity.MarchingCubesMeshGenerator.Terraformer {
+namespace PrototUnity.MarchingCubesMeshGenerator.Terraformer.Tests {
 	internal class VoxelModificationTest : MonoBehaviour {
 		[SerializeField] private AbstractTextureGenerator textureGenerator;
 		[SerializeField] private VoxelMeshGenerator voxelMeshGenerator;

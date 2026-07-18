@@ -1,7 +1,7 @@
 using UnityEngine;
 
-namespace PrototUnity.MarchingCubesMeshGenerator.Terraformer {
-	public class SaveAndLoadTest : MonoBehaviour {
+namespace PrototUnity.MarchingCubesMeshGenerator.Terraformer.Tests {
+	internal class SaveAndLoadTest : MonoBehaviour {
 		[SerializeField] private MeshGeneratorBase meshGenerator;
 
 		private MeshGeneratorBase.ISaveData data;
