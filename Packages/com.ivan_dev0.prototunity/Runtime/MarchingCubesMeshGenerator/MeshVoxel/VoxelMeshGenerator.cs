@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using PrototUnity.Utils;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Rendering;
 
 namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
@@ -18,10 +20,13 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 
 		private ComputeBuffer voxelCountBuffer;
 		private ComputeBuffer voxelsBuffer;
+		private ComputeBuffer modifiedCellsCountBuffer;
 		private Texture3D colorTexture;
 		private Texture2D heightTexture;
 
 		private MeshCollider meshCollider;
+
+		public event UnityAction<Modification[]> VoxelsModifiedEvent = delegate { }; 
 
 		private static readonly int voxelsID = Shader.PropertyToID("voxels");
 		private static readonly int numPointsPerAxisID = Shader.PropertyToID("numPointsPerAxis");
@@ -41,6 +46,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 
 			voxelCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
 			voxelsBuffer = new ComputeBuffer(numVoxels, Marshal.SizeOf(typeof(Voxel)), ComputeBufferType.Append);
+			modifiedCellsCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
 
 			voxelMaterial.enableInstancing = true;
 			voxelMaterial.SetBuffer(voxelsID, voxelsBuffer);
@@ -69,6 +75,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			
 			GenerateVoxels();
 			OnMeshChanged(mesh);
+			GenerateModifiedVoxels();
 		}
 
 		private void GenerateVoxels() {
@@ -76,6 +83,17 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			voxelShader.SetBuffer(0, voxelsID, voxelsBuffer);
 			voxelShader.SetInt(numPointsPerAxisID, NumPointsPerAxis);
 			ComputeHelper.Dispatch(voxelShader, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
+		}
+
+		private void GenerateModifiedVoxels() {
+			ComputeBuffer.CopyCount(modifiedCellsBuffer, modifiedCellsCountBuffer, 0);
+			int[] modifiedVoxelCountArray = { 0 };
+			modifiedCellsCountBuffer.GetData(modifiedVoxelCountArray);
+			var voxelsAmount = modifiedVoxelCountArray[0];
+
+			var modifiedData = new Modification[voxelsAmount];
+			modifiedCellsBuffer.GetData(modifiedData);
+			VoxelsModifiedEvent.Invoke(modifiedData);
 		}
 
 		private void Update() {

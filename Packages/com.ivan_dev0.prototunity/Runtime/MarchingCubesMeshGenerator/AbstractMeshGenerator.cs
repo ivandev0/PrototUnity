@@ -64,9 +64,16 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 			}
 		};
 		
+		public struct Modification {
+			public readonly Vector3 position;
+			public readonly float before;
+			public readonly float after;
+		}
+		
 		protected RenderTexture pointsBuffer;
 		private ComputeBuffer trianglesBuffer;
 		private ComputeBuffer triCountBuffer;
+		protected ComputeBuffer modifiedCellsBuffer;
 
 		protected Mesh mesh;
 		
@@ -74,6 +81,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		
 		protected static readonly int pointsID = Shader.PropertyToID("points");
 		private static readonly int textureSizeID = Shader.PropertyToID("textureSize");
+		private static readonly int modifiedCellsID = Shader.PropertyToID("modifiedCells");
 		private static readonly int brushCenterID = Shader.PropertyToID("brushCenter");
 		private static readonly int brushRadiusID = Shader.PropertyToID("brushRadius");
 		private static readonly int deltaTimeID = Shader.PropertyToID("deltaTime");
@@ -104,6 +112,9 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 
 			trianglesBuffer = new ComputeBuffer(maxTriangleCount, Marshal.SizeOf(typeof(Triangle)), ComputeBufferType.Append);
 			triCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
+
+			modifiedCellsBuffer = new ComputeBuffer(numVoxels, Marshal.SizeOf<Modification>(), ComputeBufferType.Append);
+			editShader.SetBuffer(0, modifiedCellsID, modifiedCellsBuffer);
 		}
 
 		protected sealed override void GenerateMesh() {
@@ -154,6 +165,8 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		public abstract void Render();
 
 		public sealed override void Terraform(Vector3 point, float terraformWeight, float terraformRadius) {
+			modifiedCellsBuffer.SetCounterValue(0);
+			
 			var boundsSize = BoundSize.x;
 			var textureSize = NumPointsPerAxis;
 			var worldSizeInOnePixel = boundsSize / textureSize;
@@ -208,6 +221,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 			pointsBuffer.Release();
 			triCountBuffer.Release();
 			trianglesBuffer.Release();
+			modifiedCellsBuffer.Release();
 		}
 		
 		private static Vector3Int GetTexturePosition(Vector3 worldPosition, int textureSize, float cubeSize) {
