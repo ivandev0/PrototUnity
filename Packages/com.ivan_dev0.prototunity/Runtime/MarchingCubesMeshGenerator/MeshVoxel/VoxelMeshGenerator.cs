@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using PrototUnity.Utils;
 using UnityEngine;
@@ -26,6 +25,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 
 		private MeshCollider meshCollider;
 
+		public Vector3 Scale => BoundSize / NumPointsPerAxis;
 		public event UnityAction<Modification[]> VoxelsModifiedEvent = delegate { }; 
 
 		private static readonly int voxelsID = Shader.PropertyToID("voxels");
@@ -54,7 +54,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			voxelMaterial.SetTexture(colorsID, colorTexture);
 			voxelMaterial.SetVector(colorSizeID, new Vector4(colorTexture.width, colorTexture.height, colorTexture.depth, 0));
 
-			var voxelSize = BoundSize / NumPointsPerAxis;
+			var voxelSize = Scale;
 			var range = new Vector2(-voxelSize.x * 2, voxelSize.x * 2);
 			heightTexture = differentHeight 
 				? Utils.GetRandomHeights(colorTexture.width, colorTexture.height, range) 
@@ -112,7 +112,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 				receiveShadows = true,
 				matProps = new MaterialPropertyBlock()
 			};
-			rp.matProps.SetMatrix(objectToWorldID, Matrix4x4.TRS(transform.position, Quaternion.identity, BoundSize / NumPointsPerAxis));
+			rp.matProps.SetMatrix(objectToWorldID, Matrix4x4.TRS(transform.position, Quaternion.identity, Scale));
 			var commandCount = 1;
 			var commandBuf = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, commandCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
 			var commandData = new GraphicsBuffer.IndirectDrawIndexedArgs[commandCount];

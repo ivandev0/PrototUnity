@@ -1,17 +1,15 @@
 using PrototUnity.MarchingCubesMeshGenerator.MeshVoxel;
-using PrototUnity.PointsGenerators;
 using UnityEngine;
 
 namespace PrototUnity.MarchingCubesMeshGenerator.Terraformer.Tests {
 	internal class VoxelModificationTest : MonoBehaviour {
-		[SerializeField] private AbstractTextureGenerator textureGenerator;
 		[SerializeField] private VoxelMeshGenerator voxelMeshGenerator;
 		[SerializeField] private GameObject prefab;
 
 		private Matrix4x4 scaling;
 
 		private void OnEnable() {
-			scaling = Matrix4x4.Scale(voxelMeshGenerator.BoundSize / textureGenerator.NumPointsPerAxis);
+			scaling = Matrix4x4.Scale(voxelMeshGenerator.Scale);
 			voxelMeshGenerator.VoxelsModifiedEvent += OnVoxelsModifiedEvent;
 		}
 
