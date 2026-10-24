@@ -8,6 +8,7 @@ struct Voxel
 };
 
 StructuredBuffer<Voxel> voxels;
+Texture3D<float> points;
 Texture3D colors;
 float4 colorSize;
 Texture2D<float> heights;
@@ -22,11 +23,22 @@ int3 IdToCoord(uint instanceID)
     return int3(x, y, z); 
 }
 
-void GetVoxelPosition_float(uint instanceId, out float3 voxelPosition)
+void GetVoxelPosition_float(uint instanceId, float3 normalWS, out float3 voxelPosition)
 {
     int3 coord = IdToCoord(instanceId);
-    float height = heights.Load(int3(coord[0], coord[2], 0));
-    voxelPosition = voxels[instanceId].position + float3(0, height, 0);
+    
+    int3 neighbor = coord + int3(round(normalWS));
+    bool neighborIsInside = all(neighbor >= 0) && all(neighbor < int3(colorSize.xyz));
+    bool faceMustBeHidden = neighborIsInside && points.Load(int4(neighbor, 0)) <= 0;
+    if (faceMustBeHidden)
+    {
+        // Hide face if it is completely inside the mesh, so we don't see them with cut through
+        voxelPosition = float3(0, 0, 0);
+    } else
+    {
+        float height = heights.Load(int3(coord[0], coord[2], 0));
+        voxelPosition = voxels[instanceId].position + float3(0, height, 0);
+    }
 }
 
 void GetColor_float(uint instanceID, out float4 color)

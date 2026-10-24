@@ -68,6 +68,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 
 		private void InitTextures() {
 			voxelShader.SetTexture(0, pointsID, pointsBuffer);
+			voxelMaterial.SetTexture(pointsID, pointsBuffer);
 		}
 
 		protected override void AfterMeshGeneration() {
