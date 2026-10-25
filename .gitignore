@@ -33,6 +33,9 @@ ExportedObj/
 *.app
 *.exe
 
+# AI
+.codex
+
 # Custom
 # This folder is used to save models produced by ModelSaver
 /Assets/SavedModels/*
