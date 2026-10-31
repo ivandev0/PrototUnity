@@ -22,6 +22,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		private ComputeBuffer modifiedCellsCountBuffer;
 		private Texture3D colorTexture;
 		private Texture2D heightTexture;
+		private GraphicsBuffer commandBuf;
 
 		private MeshCollider meshCollider;
 
@@ -115,7 +116,8 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			};
 			rp.matProps.SetMatrix(objectToWorldID, Matrix4x4.TRS(transform.position, Quaternion.identity, Scale));
 			var commandCount = 1;
-			var commandBuf = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, commandCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+			if (commandBuf != null) commandBuf.Release();
+			commandBuf = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, commandCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
 			var commandData = new GraphicsBuffer.IndirectDrawIndexedArgs[commandCount];
 			commandData[0].indexCountPerInstance = voxelMesh.GetIndexCount(0);
 			commandData[0].instanceCount = (uint) voxelsAmount;
