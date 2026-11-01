@@ -23,7 +23,7 @@ int3 IdToCoord(uint instanceID)
     return int3(x, y, z); 
 }
 
-void GetVoxelPosition_float(uint instanceId, float3 normalWS, out float3 voxelPosition)
+void GetVoxelPosition_float(uint instanceId, float3 positionOS, float3 normalWS, out float3 voxelPosition)
 {
     int3 coord = IdToCoord(instanceId);
     
@@ -37,7 +37,7 @@ void GetVoxelPosition_float(uint instanceId, float3 normalWS, out float3 voxelPo
     } else
     {
         float height = heights.Load(int3(coord[0], coord[2], 0));
-        voxelPosition = voxels[instanceId].position + float3(0, height, 0);
+        voxelPosition = positionOS + voxels[instanceId].position + float3(0, height, 0);
     }
 }
 
