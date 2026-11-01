@@ -17,12 +17,12 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			private Vector3 position;
 		}
 
-		private ComputeBuffer voxelCountBuffer;
 		private ComputeBuffer voxelsBuffer;
 		private ComputeBuffer modifiedCellsCountBuffer;
 		private Texture3D colorTexture;
 		private Texture2D heightTexture;
-		private GraphicsBuffer commandBuf;
+		private GraphicsBuffer drawArgsBuffer;
+		private MaterialPropertyBlock propertyBlock;
 
 		private MeshCollider meshCollider;
 
@@ -45,9 +45,13 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			var numberOfCubesPerAxis = NumPointsPerAxis - 1;
 			var numVoxels = numberOfCubesPerAxis * numberOfCubesPerAxis * numberOfCubesPerAxis;
 
-			voxelCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
 			voxelsBuffer = new ComputeBuffer(numVoxels, Marshal.SizeOf(typeof(Voxel)), ComputeBufferType.Append);
 			modifiedCellsCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
+			drawArgsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 1, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+			drawArgsBuffer.SetData(new[] {
+				new GraphicsBuffer.IndirectDrawIndexedArgs { indexCountPerInstance = voxelMesh.GetIndexCount(0) }
+			});
+			propertyBlock = new MaterialPropertyBlock();
 
 			voxelMaterial.enableInstancing = true;
 			voxelMaterial.SetBuffer(voxelsID, voxelsBuffer);
@@ -85,6 +89,8 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			voxelShader.SetBuffer(0, voxelsID, voxelsBuffer);
 			voxelShader.SetInt(numPointsPerAxisID, NumPointsPerAxis);
 			ComputeHelper.Dispatch(voxelShader, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
+			// `CopyCount` fills `instanceCount`. Happens on GPU
+			GraphicsBuffer.CopyCount(voxelsBuffer, drawArgsBuffer, sizeof(uint));
 		}
 
 		private void GenerateModifiedVoxels() {
@@ -103,32 +109,20 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		}
 
 		public override void Render() {
-			ComputeBuffer.CopyCount(voxelsBuffer, voxelCountBuffer, 0);
-			int[] voxelCountArray = { 0 };
-			voxelCountBuffer.GetData(voxelCountArray);
-			var voxelsAmount = voxelCountArray[0];
-			
+			propertyBlock.SetMatrix(objectToWorldID, Matrix4x4.TRS(transform.position, Quaternion.identity, Scale));
 			var rp = new RenderParams(voxelMaterial) {
 				worldBounds = new Bounds(Vector3.zero, BoundSize * 1.1f),
 				shadowCastingMode = ShadowCastingMode.On,
 				receiveShadows = true,
-				matProps = new MaterialPropertyBlock()
+				matProps = propertyBlock
 			};
-			rp.matProps.SetMatrix(objectToWorldID, Matrix4x4.TRS(transform.position, Quaternion.identity, Scale));
-			var commandCount = 1;
-			if (commandBuf != null) commandBuf.Release();
-			commandBuf = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, commandCount, GraphicsBuffer.IndirectDrawIndexedArgs.size);
-			var commandData = new GraphicsBuffer.IndirectDrawIndexedArgs[commandCount];
-			commandData[0].indexCountPerInstance = voxelMesh.GetIndexCount(0);
-			commandData[0].instanceCount = (uint) voxelsAmount;
-			commandBuf.SetData(commandData);
-			Graphics.RenderMeshIndirect(rp, voxelMesh, commandBuf, commandCount);
+			Graphics.RenderMeshIndirect(rp, voxelMesh, drawArgsBuffer);
 		}
 
 		protected override void ReleaseBuffers() {
 			base.ReleaseBuffers();
-			voxelCountBuffer?.Release();
 			voxelsBuffer?.Release();
+			drawArgsBuffer?.Release();
 		}
 	}
 }
