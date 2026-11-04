@@ -13,6 +13,7 @@ namespace PrototUnity.CutThrough {
 		[SerializeField] private float radius = 2.5f;
 		[Tooltip("Distance from the target towards the camera where the cut starts")]
 		[SerializeField] private float nearOffset = 0.5f;
+		[SerializeField] private float edgeSoftness = 0.75f;
 		[SerializeField] private LayerMask obstacleMask;
 		[SerializeField] private float fadeSpeed = 4f;
 
@@ -26,6 +27,7 @@ namespace PrototUnity.CutThrough {
 		private static readonly int axisID = Shader.PropertyToID("_CutThroughAxis");
 		private static readonly int radiusID = Shader.PropertyToID("_CutThroughRadius");
 		private static readonly int nearOffsetID = Shader.PropertyToID("_CutThroughNearOffset");
+		private static readonly int edgeSoftnessID = Shader.PropertyToID("_CutThroughEdgeSoftness");
 
 		private float CurrentRadius => radius * strength;
 
@@ -54,6 +56,7 @@ namespace PrototUnity.CutThrough {
 			material.SetVector(axisID, axis);
 			material.SetFloat(radiusID, CurrentRadius);
 			material.SetFloat(nearOffsetID, nearOffset);
+			material.SetFloat(edgeSoftnessID, edgeSoftness);
 		}
 
 		private bool IsTargetHidden(Vector3 cameraPosition) {

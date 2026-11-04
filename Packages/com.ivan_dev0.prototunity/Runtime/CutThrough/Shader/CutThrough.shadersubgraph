@@ -44,6 +44,20 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
+                    "m_Id": "73c1f16673874b7a9aa1e1b2081e4a17"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "df0128e27ac64a4aaf328ec16a285f99"
+                },
+                "m_SlotId": 1
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
                     "m_Id": "df0128e27ac64a4aaf328ec16a285f99"
                 },
                 "m_SlotId": 2
@@ -256,6 +270,27 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
+    "m_ObjectId": "84a7a1a3fe5e4d73959775db9bdd0d93",
+    "m_Id": 1,
+    "m_DisplayName": "pixelPosition",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "pixelPosition",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "84fddc0b16b4435ca90b5f20569481a4",
     "m_Id": 2,
@@ -324,6 +359,9 @@
     "m_Slots": [
         {
             "m_Id": "4b002b9b86e9405abb8c358828b98d93"
+        },
+        {
+            "m_Id": "84a7a1a3fe5e4d73959775db9bdd0d93"
         },
         {
             "m_Id": "84fddc0b16b4435ca90b5f20569481a4"
