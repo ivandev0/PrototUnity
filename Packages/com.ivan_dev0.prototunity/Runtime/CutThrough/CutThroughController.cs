@@ -49,7 +49,7 @@ namespace PrototUnity.CutThrough {
 				? -mainCamera.transform.forward
 				: (cameraPosition - target.position).normalized;
 
-			var targetStrength = IsTargetHidden(cameraPosition) ? 1f : 0f;
+			var targetStrength = IsTargetHidden() ? 1f : 0f;
 			strength = Mathf.MoveTowards(strength, targetStrength, fadeSpeed * Time.deltaTime);
 
 			material.SetVector(targetPositionID, target.position);
@@ -59,8 +59,11 @@ namespace PrototUnity.CutThrough {
 			material.SetFloat(edgeSoftnessID, edgeSoftness);
 		}
 
-		private bool IsTargetHidden(Vector3 cameraPosition) {
-			var distanceToCamera = Vector3.Dot(cameraPosition - target.position, axis);
+		public bool IsTargetHidden() {
+			var mainCamera = UnityEngine.Camera.main;
+			if (mainCamera == null) return false;
+			
+			var distanceToCamera = Vector3.Dot(mainCamera.transform.position - target.position, axis);
 			if (distanceToCamera <= nearOffset) return false;
 
 			var origin = target.position + axis * distanceToCamera;
