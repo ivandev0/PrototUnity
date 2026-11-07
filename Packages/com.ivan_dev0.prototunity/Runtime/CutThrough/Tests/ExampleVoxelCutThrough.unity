@@ -131,7 +131,6 @@ GameObject:
   - component: {fileID: 38142907}
   - component: {fileID: 38142906}
   - component: {fileID: 38142910}
-  - component: {fileID: 38142909}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -213,29 +212,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &38142909
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 38142905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01f6923952161478c86dc7fb4021748d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PrototUnity::PrototUnity.CutThrough.CutThroughController
-  target: {fileID: 1397466886}
-  targetOffset: {x: 0, y: 1, z: 0}
-  material: {fileID: 2100000, guid: 23849146a8b12468d8b6b5f32b7abff2, type: 2}
-  radius: 2.5
-  nearOffset: 0.5
-  edgeSoftness: 0.75
-  obstacleMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  obstacleCheckRadius: 0.3
-  fadeSpeed: 4
 --- !u!114 &38142910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -407,6 +383,73 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &968385565
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 968385566}
+  - component: {fileID: 968385567}
+  - component: {fileID: 968385568}
+  m_Layer: 0
+  m_Name: CutThrough
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &968385566
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968385565}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &968385567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968385565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01f6923952161478c86dc7fb4021748d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.CutThrough.CutThroughController
+  notifier: {fileID: 968385568}
+  material: {fileID: 2100000, guid: 23849146a8b12468d8b6b5f32b7abff2, type: 2}
+  radius: 2.5
+  edgeSoftness: 0.75
+  fadeSpeed: 4
+--- !u!114 &968385568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968385565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e4e70e87733472cb2b6ec833eb68121, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PrototUnity::PrototUnity.CutThrough.TargetHiddenNotifier
+  target: {fileID: 1397466886}
+  nearOffset: 0.5
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 1
 --- !u!1 &1397466882
 GameObject:
   m_ObjectHideFlags: 0
@@ -645,6 +688,7 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 38142908}
+  - {fileID: 968385566}
   - {fileID: 744395680}
   - {fileID: 2120854191}
   - {fileID: 1397466886}
