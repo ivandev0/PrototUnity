@@ -1,6 +1,8 @@
 #ifndef VOXELS
 #define VOXELS
 
+#include "Packages/com.ivan_dev0.prototunity/Runtime/CutThrough/Shader/CutThrough.hlsl"
+
 struct Voxel
 {
     uint id;
@@ -23,6 +25,25 @@ int3 IdToCoord(uint instanceID)
     return int3(x, y, z); 
 }
 
+// Same idea as `CutThrough_float`, but instead of discarding pixels it scales down voxels inside the cut through.
+// `voxelPosition` is the result of `GetVoxelPosition`, `visiblePosition` is the result of `HideFacesInsideVolume`.
+void GetVoxelPositionScaled_float(float3 positionOS, float3 voxelPosition, float3 visiblePosition, out float3 scaledPosition)
+{
+    scaledPosition = visiblePosition;
+// Keep the shadow caster untouched, so light does not pass through the scaled voxels
+#if !defined(SHADERPASS) || !defined(SHADERPASS_SHADOWCASTER) || SHADERPASS != SHADERPASS_SHADOWCASTER
+    float3 center = voxelPosition - positionOS;
+    float scale = 1 - GetCutThroughAmount(center);
+    // Show all faces if the voxel is scaled down
+    if (scale < 1)
+    {
+        // Note: if `softness == 0` then we will not see the faces of full neighbouring voxels.
+        // To fix it add `|| GetCutThroughAmount(center + normalWS) > 0` condition.
+        scaledPosition = center + positionOS * scale;
+    }
+#endif
+}
+
 void GetVoxelPosition_float(uint instanceId, float3 positionOS, out float3 voxelPosition)
 {
     int3 coord = IdToCoord(instanceId);
@@ -36,14 +57,8 @@ void HideFacesInsideVolume_float(uint instanceId, float3 positionWS, float3 norm
     int3 neighbor = coord + int3(round(normalWS));
     bool neighborIsInside = all(neighbor >= 0) && all(neighbor < int3(colorSize.xyz));
     bool faceMustBeHidden = neighborIsInside && points.Load(int4(neighbor, 0)) <= 0;
-    if (faceMustBeHidden)
-    {
-        // Hide face if it is completely inside the mesh, so we don't see them with cut through
-        voxelPosition = float3(0, 0, 0);
-    } else
-    {
-        voxelPosition = positionWS;
-    }
+    // Hide face if it is completely inside the mesh, so we don't see them with cut through
+    voxelPosition = faceMustBeHidden ? float3(0, 0, 0) : positionWS;
 }
 
 void GetColor_float(uint instanceID, out float4 color)
