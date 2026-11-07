@@ -23,10 +23,16 @@ int3 IdToCoord(uint instanceID)
     return int3(x, y, z); 
 }
 
-void GetVoxelPosition_float(uint instanceId, float3 positionOS, float3 normalWS, out float3 voxelPosition)
+void GetVoxelPosition_float(uint instanceId, float3 positionOS, out float3 voxelPosition)
 {
     int3 coord = IdToCoord(instanceId);
-    
+    float height = heights.Load(int3(coord[0], coord[2], 0));
+    voxelPosition = positionOS + voxels[instanceId].position + float3(0, height, 0);
+}
+
+void HideFacesInsideVolume_float(uint instanceId, float3 positionWS, float3 normalWS, out float3 voxelPosition)
+{
+    int3 coord = IdToCoord(instanceId);
     int3 neighbor = coord + int3(round(normalWS));
     bool neighborIsInside = all(neighbor >= 0) && all(neighbor < int3(colorSize.xyz));
     bool faceMustBeHidden = neighborIsInside && points.Load(int4(neighbor, 0)) <= 0;
@@ -36,8 +42,7 @@ void GetVoxelPosition_float(uint instanceId, float3 positionOS, float3 normalWS,
         voxelPosition = float3(0, 0, 0);
     } else
     {
-        float height = heights.Load(int3(coord[0], coord[2], 0));
-        voxelPosition = positionOS + voxels[instanceId].position + float3(0, height, 0);
+        voxelPosition = positionWS;
     }
 }
 
