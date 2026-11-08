@@ -31,9 +31,10 @@ bool isInsideMesh(uint3 position)
         {
             for (int k = -1; k < 2; ++k)
             {
-                if (i + position.x < 0 || position.x + i >= numPointsPerAxis) continue;
-                if (j + position.y < 0 || position.y + j >= numPointsPerAxis) continue;
-                if (k + position.z < 0 || position.z + k >= numPointsPerAxis) continue;
+                // Outside the texture is empty space, so voxels on the border stay visible.
+                if (i + position.x < 0 || position.x + i >= numPointsPerAxis) return false;
+                if (j + position.y < 0 || position.y + j >= numPointsPerAxis) return false;
+                if (k + position.z < 0 || position.z + k >= numPointsPerAxis) return false;
 
                 if (points[position + int3(i, j, k)] > 0)
                 {

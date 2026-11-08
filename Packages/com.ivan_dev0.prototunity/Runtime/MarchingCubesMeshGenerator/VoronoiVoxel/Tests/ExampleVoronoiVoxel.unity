@@ -367,7 +367,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1642334223}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c87d34f814a45deb0512d3e9ce18756, type: 3}
   m_Name: 
@@ -424,7 +424,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 209a735260f841069ff17c7d94e46cd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel.VoronoiMeshGenerator
-  textureGenerator: {fileID: 1642334224}
+  textureGenerator: {fileID: 1642334228}
   boundSize: {x: 5, y: 5, z: 5}
   editShader: {fileID: 7200000, guid: f3120fb0b0354e09abeb6a6b5ec7d848, type: 3}
   triangleShader: {fileID: 7200000, guid: aea4dc0a28cfd453faa9de6188f01665, type: 3}
@@ -439,14 +439,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1642334223}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ce1d793e91304199b790bccbc53836d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.PointsGenerators.RenderCube
   numPointsPerAxis: 40
   computeShader: {fileID: 7200000, guid: f2d895955f0a493ebea624070f8b573b, type: 3}
-  size: 10
+  size: 20
 --- !u!114 &1642334229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -459,7 +459,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3d88b3815d54506b1b5976a9c013462, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PrototUnity::PrototUnity.VoronoiGenerator.VoronoiComputeGenerator
-  size: {x: 39, y: 39, z: 39}
+  size: {x: 40, y: 40, z: 40}
   voronoiShader: {fileID: 7200000, guid: eb4d8e03f9d454924b8fd85fdcb31670, type: 3}
   boundSize: {x: 5, y: 5, z: 5}
 --- !u!114 &1642334230

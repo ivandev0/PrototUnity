@@ -13,7 +13,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel {
 		[SerializeField] private ComputeShader voronoiShader;
 		[SerializeField] private Material voronoiMaterial;
 		
-		private int NumVoxels => (NumPointsPerAxis - 1) * (NumPointsPerAxis - 1) * (NumPointsPerAxis - 1);
+		private int NumVoxels => NumPointsPerAxis * NumPointsPerAxis * NumPointsPerAxis;
 		
 		private struct Voxel {
 			private uint id;
@@ -81,8 +81,6 @@ namespace PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel {
 		}
 
 		private void InitTextures() {
-			// TODO this is slightly incorrect. We want to filter voxels that are "between" points, not "on" them.
-			//  This results in visually incorrect mesh generation.
 			voxelShader.SetTexture(0, pointsID, pointsBuffer);
 		}
 
@@ -94,7 +92,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.VoronoiVoxel {
 		}
 
 		private void GenerateVoxels() {
-			var numVoxels = NumPointsPerAxis - 1;
+			var numVoxels = NumPointsPerAxis;
 			voxelsBuffer.SetCounterValue(0);
 			voxelShader.SetBuffer(0, voxelsID, voxelsBuffer);
 			voxelShader.SetInt(numPointsPerAxisID, numVoxels);
