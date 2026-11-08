@@ -61,7 +61,9 @@ void GetVoxelNormal_float(float3 normal, uint instanceID, uint vertexID, out flo
         v2 = vertices[cell.vertexStart + vertexID];
     }
 
-    result = normalize(cross(v2 - v0, v1 - v0));
+    // Triangles are wound clockwise when viewed from outside the cell (Unity front face),
+    // so cross(v1 - v0, v2 - v0) points outward.
+    result = normalize(cross(v1 - v0, v2 - v0));
 }
 
 void GetColor_float(uint instanceID, out float4 color)
