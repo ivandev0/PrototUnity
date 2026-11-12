@@ -74,6 +74,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 		private void InitTextures() {
 			voxelShader.SetTexture(0, pointsID, pointsBuffer);
 			voxelMaterial.SetTexture(pointsID, pointsBuffer);
+			voxelMaterial.SetTexture(dugAreaID, dugBuffer);
 		}
 
 		protected override void AfterMeshGeneration() {

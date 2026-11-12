@@ -4,6 +4,7 @@ using PrototUnity.PointsGenerators;
 using PrototUnity.Utils;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace PrototUnity.MarchingCubesMeshGenerator {
@@ -71,6 +72,8 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		}
 		
 		protected RenderTexture pointsBuffer;
+		// Answers "was the point dug or not": 1 - the point was solid and became empty because of terraforming, 0 - otherwise
+		protected RenderTexture dugBuffer;
 		private ComputeBuffer trianglesBuffer;
 		private ComputeBuffer triCountBuffer;
 		protected ComputeBuffer modifiedCellsBuffer;
@@ -80,6 +83,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		protected int NumPointsPerAxis => textureGenerator.NumPointsPerAxis;
 		
 		protected static readonly int pointsID = Shader.PropertyToID("points");
+		protected static readonly int dugAreaID = Shader.PropertyToID("dugArea");
 		private static readonly int textureSizeID = Shader.PropertyToID("textureSize");
 		private static readonly int modifiedCellsID = Shader.PropertyToID("modifiedCells");
 		private static readonly int brushCenterID = Shader.PropertyToID("brushCenter");
@@ -95,6 +99,9 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 
 		protected sealed override void GeneratePoints() {
 			pointsBuffer = textureGenerator.GenerateTexture();
+			dugBuffer = TextureUtils.CreateClearTexture(
+				pointsBuffer.width, pointsBuffer.height, pointsBuffer.volumeDepth, GraphicsFormat.R8_UInt, "DugTexture3D"
+			);
 			
 			InitTextures();
 			CreateBuffers();
@@ -103,6 +110,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		private void InitTextures() {
 			triangleShader.SetTexture(0, pointsID, pointsBuffer);
 			editShader.SetTexture(0, pointsID, pointsBuffer);
+			editShader.SetTexture(0, dugAreaID, dugBuffer);
 		}
 
 		private void CreateBuffers() {
@@ -186,15 +194,18 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		}
 
 		private class SaveData : ISaveData {
-			private readonly RenderTexture texture;
+			private readonly RenderTexture points;
+			private readonly RenderTexture dug;
 			
-			public SaveData(RenderTexture texture) {
-				this.texture = new RenderTexture(texture);
-				this.texture.Create();
-				Graphics.CopyTexture(texture, this.texture);
+			public SaveData(RenderTexture points, RenderTexture dug) {
+				this.points = Copy(points);
+				this.dug = Copy(dug);
 			}
 			
-			public RenderTexture GetTexture() {
+			public RenderTexture GetPoints() => Copy(points);
+			public RenderTexture GetDug() => Copy(dug);
+
+			private static RenderTexture Copy(RenderTexture texture) {
 				var copy = new RenderTexture(texture);
 				copy.Create();
 				Graphics.CopyTexture(texture, copy);
@@ -203,12 +214,15 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 		}
 
 		public override ISaveData Save() {
-			return new SaveData(pointsBuffer);
+			return new SaveData(pointsBuffer, dugBuffer);
 		}
 
 		public override void Load(ISaveData data) {
+			var saveData = (SaveData) data;
 			pointsBuffer.Release();
-			pointsBuffer = ((SaveData) data).GetTexture();
+			dugBuffer.Release();
+			pointsBuffer = saveData.GetPoints();
+			dugBuffer = saveData.GetDug();
 			InitTextures();
 			AfterPointGeneration();
 			
@@ -219,6 +233,7 @@ namespace PrototUnity.MarchingCubesMeshGenerator {
 
 		protected virtual void ReleaseBuffers() {
 			pointsBuffer.Release();
+			dugBuffer.Release();
 			triCountBuffer.Release();
 			trianglesBuffer.Release();
 			modifiedCellsBuffer.Release();

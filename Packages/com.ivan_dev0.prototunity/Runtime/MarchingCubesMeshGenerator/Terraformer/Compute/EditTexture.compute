@@ -8,6 +8,7 @@ struct Modification
 };
 
 RWTexture3D<float> points;
+RWTexture3D<uint> dugArea; // 1 - the point was solid and became empty because of digging, 0 - otherwise
 AppendStructuredBuffer<Modification> modifiedCells;
 int textureSize;
 int3 brushCenter;
@@ -37,6 +38,19 @@ void setModification(uint3 id, float before, float after)
     modifiedCells.Append(modification);
 }
 
+void fillDugTexture(uint3 id, float oldValue, float newValue)
+{
+    // Density > 0 is empty space. Filling the point back makes it not dug anymore.
+    if (newValue <= 0)
+    {
+        dugArea[id] = 0u;
+    }
+    else if (oldValue <= 0)
+    {
+        dugArea[id] = 1u;
+    }
+}
+
 [numthreads(8,8,8)]
 void CSMain(int3 id : SV_DispatchThreadID)
 {
@@ -57,8 +71,10 @@ void CSMain(int3 id : SV_DispatchThreadID)
     float dst = sqrt(sqrDst);
     float brushWeight = 1 - smoothstep(brushRadius * 0.7, brushRadius, dst);
     float valueToApply = weight * deltaTime * brushWeight;
-    float newValue = min(1, max(-1, points[id] + valueToApply));
+    float oldValue = points[id];
+    float newValue = min(1, max(-1, oldValue + valueToApply));
     
-    setModification(id, points[id], newValue);
+    fillDugTexture(id, oldValue, newValue);
+    setModification(id, oldValue, newValue);
     points[id] = newValue;
 }

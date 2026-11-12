@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
 namespace PrototUnity.Utils {
 	public static class TextureUtils {
@@ -55,6 +57,26 @@ namespace PrototUnity.Utils {
 			croppedTexture.SetPixels(pixels);
 			croppedTexture.Apply();
 			return croppedTexture;
+		}
+		
+		public static RenderTexture CreateClearTexture(int width, int height, int depth, GraphicsFormat format, string name = "texture3D") {
+			const int numBitsInDepthBuffer = 0;
+			var texture = new RenderTexture(width, height, numBitsInDepthBuffer, format) {
+				volumeDepth = depth,
+				dimension = TextureDimension.Tex3D,
+				enableRandomWrite = true,
+				name = name
+			};
+			texture.Create();
+
+			// Clear the texture
+			var commandBuffer = new CommandBuffer { name = "Clear dug texture" };
+			commandBuffer.SetRenderTarget(texture, 0, CubemapFace.Unknown, -1);
+			commandBuffer.ClearRenderTarget(false, true, Color.clear);
+			Graphics.ExecuteCommandBuffer(commandBuffer);
+			commandBuffer.Release();
+
+			return texture;
 		}
 	}
 }
