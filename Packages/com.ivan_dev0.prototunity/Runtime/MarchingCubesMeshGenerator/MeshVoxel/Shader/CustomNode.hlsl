@@ -67,4 +67,44 @@ void GetColor_float(uint instanceID, out float4 color)
     color = colors.Load(int4(coord, 0));
 }
 
+// --- CAVE logic ---
+
+Texture3D<uint> dugArea; // 1 - the point was dug, 0 - otherwise
+float showOnlyCaves;
+
+// The voxel is a wall of a cave if at least one of its neighbours was dug
+bool IsCaveVoxel(int3 coord)
+{
+    for (int i = -1; i <= 1; ++i)
+    {
+        for (int j = -1; j <= 1; ++j)
+        {
+            for (int k = -1; k <= 1; ++k)
+            {
+                int3 neighbor = coord + int3(i, j, k);
+                if (any(neighbor < 0) || any(neighbor >= int3(colorSize.xyz))) continue;
+                if (dugArea.Load(int4(neighbor, 0)) != 0) return true;
+            }
+        }
+    }
+    return false;
+}
+
+// When only caves must be shown (e.g. the target is underground) hide all voxels except the walls of caves
+bool ShowOnlyCave(int3 coord)
+{
+    // Keep the shadow caster untouched, so light does not pass through the hidden voxels
+    #if !defined(SHADERPASS) || !defined(SHADERPASS_SHADOWCASTER) || SHADERPASS != SHADERPASS_SHADOWCASTER
+    return showOnlyCaves > 0.5 && !IsCaveVoxel(coord);
+    #else
+    return false;
+    #endif
+}
+
+void ShowOnlyCave_float(uint instanceId, float3 positionWS, out float3 voxelPosition)
+{
+    int3 coord = IdToCoord(instanceId);
+    voxelPosition = ShowOnlyCave(coord) ? float3(0, 0, 0) : positionWS;
+}
+
 #endif // VOXELS
