@@ -51,20 +51,27 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 			drawArgsBuffer.SetData(new[] {
 				new GraphicsBuffer.IndirectDrawIndexedArgs { indexCountPerInstance = voxelMesh.GetIndexCount(0) }
 			});
+
+			if (!voxelMaterial.enableInstancing) {
+				Debug.LogWarning($"Material {voxelMaterial.name} has disabled instancing.");
+				voxelMaterial.enableInstancing = true;
+			}
+			
+			// Runtime data goes into the property block, not into the shared material asset.
+			// Otherwise, saving assets during play mode re-serializes the material and resets values.
 			propertyBlock = new MaterialPropertyBlock();
 
-			voxelMaterial.enableInstancing = true;
-			voxelMaterial.SetBuffer(voxelsID, voxelsBuffer);
+			propertyBlock.SetBuffer(voxelsID, voxelsBuffer);
 			colorTexture = VoronoiGenerator.Utils.CreateRandomColors(0, NumPointsPerAxis, NumPointsPerAxis, NumPointsPerAxis);
-			voxelMaterial.SetTexture(colorsID, colorTexture);
-			voxelMaterial.SetVector(colorSizeID, new Vector4(colorTexture.width, colorTexture.height, colorTexture.depth, 0));
+			propertyBlock.SetTexture(colorsID, colorTexture);
+			propertyBlock.SetVector(colorSizeID, new Vector4(colorTexture.width, colorTexture.height, colorTexture.depth, 0));
 
 			var voxelSize = Scale;
 			var range = new Vector2(-voxelSize.x * 2, voxelSize.x * 2);
 			heightTexture = differentHeight 
 				? Utils.GetRandomHeights(colorTexture.width, colorTexture.height, range) 
 				: Utils.GetEmptyTexture(colorTexture.width, colorTexture.height);
-			voxelMaterial.SetTexture(heightsID, heightTexture);
+			propertyBlock.SetTexture(heightsID, heightTexture);
 		}
 
 		protected override void AfterPointGeneration() {
@@ -73,8 +80,8 @@ namespace PrototUnity.MarchingCubesMeshGenerator.MeshVoxel {
 
 		private void InitTextures() {
 			voxelShader.SetTexture(0, pointsID, pointsBuffer);
-			voxelMaterial.SetTexture(pointsID, pointsBuffer);
-			voxelMaterial.SetTexture(dugAreaID, dugBuffer);
+			propertyBlock.SetTexture(pointsID, pointsBuffer);
+			propertyBlock.SetTexture(dugAreaID, dugBuffer);
 		}
 
 		protected override void AfterMeshGeneration() {
